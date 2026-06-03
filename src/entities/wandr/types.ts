@@ -1,13 +1,13 @@
 export type PreviewStopState = "done" | "match" | "upcoming";
 
-export interface WandrerPreviewStop {
+export interface WandrPreviewStop {
   timeLabel: string;
   name: string;
   district: string;
   state: PreviewStopState;
 }
 
-export interface WandrerProfile {
+export interface WandrProfile {
   id: string;
   initials: string;
   avatarTone: "ink" | "oak" | "marine";
@@ -23,7 +23,7 @@ export interface WandrerProfile {
     name: string;
     detail: string;
   };
-  strandPreview: WandrerPreviewStop[];
+  strandPreview: WandrPreviewStop[];
 }
 
 export interface ItineraryOverlap {
@@ -33,5 +33,5 @@ export interface ItineraryOverlap {
   timeWindow: string;
   count: number;
   matchCopy: string;
-  wandrers: WandrerProfile[];
+  wandrs: WandrProfile[];
 }

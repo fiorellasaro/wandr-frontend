@@ -1,5 +1,5 @@
-import type { Itinerary, ItineraryStop } from "@/entities/itinerary/types";
-import type { ItineraryOverlap, WandrerProfile } from "@/entities/wandrer/types";
+import type { Itinerary } from "@/entities/itinerary/types";
+import type { ItineraryOverlap, WandrProfile } from "@/entities/wandr/types";
 
 export function formatCurrentTime(date = new Date()) {
   return new Intl.DateTimeFormat("en-US", {
@@ -35,15 +35,12 @@ function replaceLiveNowText(value: string, currentTime: string) {
   return value;
 }
 
-function withLiveStopTime(stop: ItineraryStop, currentTime: string): ItineraryStop {
-  if (stop.state !== "active" && !isNowPrefixed(stop.timeLabel)) {
-    return stop;
+function stripLiveNowPrefix(label: string) {
+  if (!isNowPrefixed(label)) {
+    return label;
   }
 
-  return {
-    ...stop,
-    timeLabel: `Now · ${currentTime}`,
-  };
+  return label.replace(/^now\s*·\s*/i, "");
 }
 
 export function withLiveItineraryTime(itinerary: Itinerary, date = new Date()) {
@@ -52,22 +49,25 @@ export function withLiveItineraryTime(itinerary: Itinerary, date = new Date()) {
   return {
     ...itinerary,
     overlapSubhead: replaceLiveNowText(itinerary.overlapSubhead, currentTime),
-    stops: itinerary.stops.map((stop) => withLiveStopTime(stop, currentTime)),
+    stops: itinerary.stops.map((stop) => ({
+      ...stop,
+      timeLabel: stripLiveNowPrefix(stop.timeLabel),
+    })),
   } satisfies Itinerary;
 }
 
-function withLiveWandrerTime(wandrer: WandrerProfile, currentTime: string) {
+function withLiveWandrTime(wandr: WandrProfile, currentTime: string) {
   return {
-    ...wandrer,
-    timeWindow: replaceLiveNowText(wandrer.timeWindow, currentTime),
-    strandPreview: wandrer.strandPreview.map((stop) => ({
+    ...wandr,
+    timeWindow: replaceLiveNowText(wandr.timeWindow, currentTime),
+    strandPreview: wandr.strandPreview.map((stop) => ({
       ...stop,
       timeLabel:
         stop.state === "match" && isNowPrefixed(stop.timeLabel)
           ? `Now · ${currentTime}`
           : stop.timeLabel,
     })),
-  } satisfies WandrerProfile;
+  } satisfies WandrProfile;
 }
 
 export function withLiveOverlapTime(overlap: ItineraryOverlap, date = new Date()) {
@@ -76,15 +76,15 @@ export function withLiveOverlapTime(overlap: ItineraryOverlap, date = new Date()
   return {
     ...overlap,
     timeWindow: replaceLiveNowText(overlap.timeWindow, currentTime),
-    wandrers: overlap.wandrers.map((wandrer) =>
-      withLiveWandrerTime(wandrer, currentTime),
+    wandrs: overlap.wandrs.map((wandr) =>
+      withLiveWandrTime(wandr, currentTime),
     ),
   } satisfies ItineraryOverlap;
 }
 
-export function withLiveWandrerProfileTime(
-  wandrer: WandrerProfile,
+export function withLiveWandrProfileTime(
+  wandr: WandrProfile,
   date = new Date(),
 ) {
-  return withLiveWandrerTime(wandrer, formatCurrentTime(date));
+  return withLiveWandrTime(wandr, formatCurrentTime(date));
 }

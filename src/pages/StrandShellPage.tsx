@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, Outlet, useParams } from "react-router-dom";
+import { Link, Outlet, useLocation, useParams } from "react-router-dom";
 
 import type { Itinerary } from "@/entities/itinerary/types";
-import type { ItineraryOverlap } from "@/entities/wandrer/types";
+import type { ItineraryOverlap } from "@/entities/wandr/types";
 
 import { useDemoApp } from "@/features/demo/DemoAppContext";
 import { mockWandrService } from "@/features/demo/mockWandrService";
@@ -19,6 +19,7 @@ export interface StrandOutletContext {
 
 export function StrandShellPage() {
   const { itineraryId = "" } = useParams();
+  const { pathname } = useLocation();
   const { state, replanStrand, dismissToast, markStopDone } = useDemoApp();
   const [isReplanning, setIsReplanning] = useState(false);
   const [replanSignal, setReplanSignal] = useState(0);
@@ -53,8 +54,11 @@ export function StrandShellPage() {
     [itinerary, now],
   );
   const liveOverlap = useMemo(
-    () => (overlap ? withLiveOverlapTime(overlap, now) : null),
-    [overlap, now],
+    () =>
+      state.preferences.socialPreferences.enabled && overlap
+        ? withLiveOverlapTime(overlap, now)
+        : null,
+    [overlap, now, state.preferences.socialPreferences.enabled],
   );
 
   const handleReplan = () => {
@@ -73,22 +77,33 @@ export function StrandShellPage() {
     }, 2400);
   };
 
+  const isNearbyView = pathname === `/strand/${itinerary.id}/overlaps`;
+
   return (
     <>
-      <StrandReplicaView
-        itinerary={liveItinerary}
-        isReplanning={isReplanning}
-        onCheckIn={(stopId) => markStopDone(itinerary.id, stopId)}
-        onReplan={handleReplan}
-        overlap={liveOverlap}
-        pulseSignal={pulseSignal}
-        replanSignal={replanSignal}
-        showVisitedBanner={state.preferences.avoidVisited}
-      />
+      {isNearbyView ? (
+        <Outlet
+          context={{ itinerary: liveItinerary, overlap: liveOverlap, now } satisfies StrandOutletContext}
+        />
+      ) : (
+        <>
+          <StrandReplicaView
+            currentDate={now}
+            itinerary={liveItinerary}
+            isReplanning={isReplanning}
+            onCheckIn={(stopId) => markStopDone(itinerary.id, stopId)}
+            onReplan={handleReplan}
+            overlap={liveOverlap}
+            pulseSignal={pulseSignal}
+            replanSignal={replanSignal}
+            showVisitedBanner={state.preferences.avoidVisited}
+          />
 
-      <Outlet
-        context={{ itinerary: liveItinerary, overlap: liveOverlap, now } satisfies StrandOutletContext}
-      />
+          <Outlet
+            context={{ itinerary: liveItinerary, overlap: liveOverlap, now } satisfies StrandOutletContext}
+          />
+        </>
+      )}
       <Toast message={state.toastMessage} onDismiss={dismissToast} />
     </>
   );

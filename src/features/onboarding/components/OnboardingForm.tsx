@@ -14,8 +14,12 @@ import {
   districtOptions,
   durationOptions,
   foodPreferenceOptions,
+  groupCompositionOptions,
+  groupSizeOptions,
   interestOptions,
+  meetupStyleOptions,
   paceOptions,
+  socialModeOptions,
 } from "@/features/demo/mockCatalog";
 import { useDemoApp } from "@/features/demo/DemoAppContext";
 import { GeographyMap } from "@/features/onboarding/components/GeographyMap";
@@ -28,6 +32,7 @@ import type {
   LocationStatus,
   UserLocation,
 } from "@/features/onboarding/lib/geography";
+import { requestLocationPermissionForRuntime } from "@/shared/lib/locationPermission";
 
 const GEOLOCATION_PERMISSION_DENIED = 1;
 const GEOLOCATION_POSITION_UNAVAILABLE = 2;
@@ -111,7 +116,20 @@ export function OnboardingForm() {
     setDraft((current) => ({ ...current, pace }));
   };
 
-  const requestLocation = () => {
+  const setSocialMode = (
+    mode: (typeof socialModeOptions)[number]["value"],
+  ) => {
+    setDraft((current) => ({
+      ...current,
+      socialPreferences: {
+        ...current.socialPreferences,
+        enabled: mode !== "NOT_TODAY",
+        meetupStyle: mode === "EASY_MOMENTS" ? "COFFEE" : "ANY",
+      },
+    }));
+  };
+
+  const requestLocation = async () => {
     if (!("geolocation" in navigator)) {
       setLocationStatus("error");
       setLocationError(
@@ -122,6 +140,24 @@ export function OnboardingForm() {
 
     setLocationStatus("locating");
     setLocationError(null);
+
+    try {
+      const permission = await requestLocationPermissionForRuntime();
+
+      if (permission.isNativeAndroid && !permission.granted) {
+        setLocationStatus("error");
+        setLocationError(
+          "Location access was blocked on this device. Enable it in Android settings or continue manually.",
+        );
+        return;
+      }
+    } catch {
+      setLocationStatus("error");
+      setLocationError(
+        "We could not ask Android for location permission. Try again or continue manually.",
+      );
+      return;
+    }
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -167,6 +203,11 @@ export function OnboardingForm() {
   const canSubmit = draft.interests.length > 0 && canChooseDistricts;
   const isOutsideMvpZone =
     districtCards[0]?.distanceKm !== null && districtCards[0].distanceKm > 8;
+  const selectedSocialMode = !draft.socialPreferences.enabled
+    ? "NOT_TODAY"
+    : draft.socialPreferences.meetupStyle === "COFFEE"
+      ? "EASY_MOMENTS"
+      : "OPEN";
 
   let geographySupportCopy =
     "Share your location to unlock the districts closest to you below the map.";
@@ -419,6 +460,120 @@ export function OnboardingForm() {
               </button>
             ))}
           </div>
+        </div>
+
+        <div className="panel__section">
+          <div className="section-head">
+            <div>
+              <p className="section-head__eyebrow">Social mode</p>
+              <h2 className="section-head__title">Find your people?</h2>
+            </div>
+          </div>
+          <p className="support-copy">
+            Choose if Wandr should surface travelers whose strands overlap
+            yours.
+          </p>
+          <div className="choice-grid choice-grid--three social-mode-grid">
+            {socialModeOptions.map((option) => (
+              <button
+                className={`choice-card${selectedSocialMode === option.value ? " choice-card--selected" : ""}`}
+                key={option.value}
+                onClick={() => setSocialMode(option.value)}
+                type="button"
+              >
+                <span className="choice-card__label">{option.label}</span>
+                <span className="choice-card__description">
+                  {option.description}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {draft.socialPreferences.enabled ? (
+            <div className="social-preferences">
+              <div className="social-preferences__group">
+                <p className="social-preferences__label">Group preference</p>
+                <div className="choice-grid choice-grid--three">
+                  {groupCompositionOptions.map((option) => (
+                    <button
+                      className={`choice-card choice-card--compact${draft.socialPreferences.groupComposition === option.value ? " choice-card--selected" : ""}`}
+                      key={option.value}
+                      onClick={() =>
+                        setDraft((current) => ({
+                          ...current,
+                          socialPreferences: {
+                            ...current.socialPreferences,
+                            groupComposition: option.value,
+                          },
+                        }))
+                      }
+                      type="button"
+                    >
+                      <span className="choice-card__label">
+                        {option.label}
+                      </span>
+                      <span className="choice-card__description">
+                        {option.description}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="social-preferences__group">
+                <p className="social-preferences__label">Group size</p>
+                <div className="choice-grid choice-grid--three">
+                  {groupSizeOptions.map((option) => (
+                    <button
+                      className={`choice-card choice-card--compact${draft.socialPreferences.groupSize === option.value ? " choice-card--selected" : ""}`}
+                      key={option.value}
+                      onClick={() =>
+                        setDraft((current) => ({
+                          ...current,
+                          socialPreferences: {
+                            ...current.socialPreferences,
+                            groupSize: option.value,
+                          },
+                        }))
+                      }
+                      type="button"
+                    >
+                      <span className="choice-card__label">
+                        {option.label}
+                      </span>
+                      <span className="choice-card__description">
+                        {option.description}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="social-preferences__group">
+                <p className="social-preferences__label">Meetup style</p>
+                <div className="chip-row">
+                  {meetupStyleOptions.map((option) => (
+                    <button
+                      className={`chip${draft.socialPreferences.meetupStyle === option.value ? " chip--selected" : ""}`}
+                      key={option.value}
+                      onClick={() =>
+                        setDraft((current) => ({
+                          ...current,
+                          socialPreferences: {
+                            ...current.socialPreferences,
+                            meetupStyle: option.value,
+                          },
+                        }))
+                      }
+                      type="button"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="panel__section">

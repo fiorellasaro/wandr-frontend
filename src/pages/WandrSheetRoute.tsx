@@ -5,18 +5,18 @@ import { BottomSheet } from "@/shared/ui/BottomSheet";
 import { useDemoApp } from "@/features/demo/DemoAppContext";
 import { mockWandrService } from "@/features/demo/mockWandrService";
 import type { StrandOutletContext } from "@/pages/StrandShellPage";
-import { withLiveWandrerProfileTime } from "@/shared/lib/liveTime";
+import { withLiveWandrProfileTime } from "@/shared/lib/liveTime";
 
-export function WandrerSheetRoute() {
+export function WandrSheetRoute() {
   const navigate = useNavigate();
   const { itinerary, now } = useOutletContext<StrandOutletContext>();
-  const { wandrerId = "" } = useParams();
+  const { wandrId = "" } = useParams();
   const { sendNod } = useDemoApp();
   const [matchUnlocked, setMatchUnlocked] = useState(false);
-  const wandrerData = mockWandrService.getWandrer(itinerary.id, wandrerId);
-  const wandrer = wandrerData ? withLiveWandrerProfileTime(wandrerData, now) : null;
+  const wandrData = mockWandrService.getWandr(itinerary.id, wandrId);
+  const wandr = wandrData ? withLiveWandrProfileTime(wandrData, now) : null;
 
-  if (!wandrer) {
+  if (!wandr) {
     return null;
   }
 
@@ -24,7 +24,7 @@ export function WandrerSheetRoute() {
     <BottomSheet
       eyebrow="Compatible strand"
       onClose={() => navigate("..", { relative: "path" })}
-      title={wandrer.name}
+      title={wandr.name}
       footer={
         <>
           <button
@@ -37,7 +37,7 @@ export function WandrerSheetRoute() {
           <button
             className="button button--primary"
             onClick={() => {
-              const result = sendNod(itinerary.id, wandrer.id);
+              const result = sendNod(itinerary.id, wandr.id);
               setMatchUnlocked(result.matched);
             }}
             type="button"
@@ -49,11 +49,11 @@ export function WandrerSheetRoute() {
     >
       <div className="detail-stack">
         <div className="profile-lead">
-          <div className={`avatar avatar--${wandrer.avatarTone}`}>{wandrer.initials}</div>
+          <div className={`avatar avatar--${wandr.avatarTone}`}>{wandr.initials}</div>
           <div>
-            <p className="detail-stack__meta">{wandrer.meta}</p>
+            <p className="detail-stack__meta">{wandr.meta}</p>
             <div className="tag-row tag-row--compact">
-              {wandrer.vibeTags.map((tag) => (
+              {wandr.vibeTags.map((tag) => (
                 <span className="tag" key={tag}>
                   {tag}
                 </span>
@@ -64,13 +64,13 @@ export function WandrerSheetRoute() {
 
         <div className="info-banner info-banner--soft">
           <span>
-            {wandrer.overlapReason} · {wandrer.currentStopLabel} · {wandrer.timeWindow}
+            {wandr.overlapReason} · {wandr.currentStopLabel} · {wandr.timeWindow}
           </span>
         </div>
 
         <div className="mini-strand">
-          {wandrer.strandPreview.map((stop) => (
-            <div className="mini-strand__row" key={`${wandrer.id}-${stop.timeLabel}-${stop.name}`}>
+          {wandr.strandPreview.map((stop) => (
+            <div className="mini-strand__row" key={`${wandr.id}-${stop.timeLabel}-${stop.name}`}>
               <span className={`mini-strand__dot mini-strand__dot--${stop.state}`} />
               <div>
                 <p className="mini-strand__time">{stop.timeLabel}</p>
@@ -85,7 +85,7 @@ export function WandrerSheetRoute() {
           <div className="info-banner">
             <span>
               Mutual nod unlocked · Suggested meetup at{" "}
-              <strong>{wandrer.meetupStop.name}</strong> · {wandrer.meetupStop.detail}
+              <strong>{wandr.meetupStop.name}</strong> · {wandr.meetupStop.detail}
             </span>
           </div>
         ) : null}

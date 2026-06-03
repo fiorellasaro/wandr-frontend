@@ -2,9 +2,12 @@ import type { Itinerary, ItineraryStop } from "@/entities/itinerary/types";
 import type {
   OnboardingOption,
   OnboardingPreferences,
+  SocialGroupComposition,
+  SocialGroupSize,
+  SocialMeetupStyle,
 } from "@/entities/onboarding/types";
 import type { FoodPreference, Interest, Pace } from "@/entities/onboarding/types";
-import type { ItineraryOverlap } from "@/entities/wandrer/types";
+import type { ItineraryOverlap } from "@/entities/wandr/types";
 
 const mapLink = (query: string) =>
   `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
@@ -18,6 +21,12 @@ export const defaultPreferences: OnboardingPreferences = {
   interests: ["CULTURAL", "FOODIE"],
   pace: "MEDIUM",
   foodPreference: "MEAL",
+  socialPreferences: {
+    enabled: true,
+    groupComposition: "NO_PREFERENCE",
+    groupSize: "SMALL_GROUP",
+    meetupStyle: "ANY",
+  },
   preferWalking: true,
   avoidVisited: true,
   budget: "MID",
@@ -98,6 +107,92 @@ export const foodPreferenceOptions: Array<OnboardingOption<FoodPreference>> = [
     value: "NONE",
     label: "No food",
     description: "Skip food entirely so it does not get included in the itinerary.",
+  },
+];
+
+export const socialModeOptions: Array<
+  OnboardingOption<"NOT_TODAY" | "OPEN" | "EASY_MOMENTS">
+> = [
+  {
+    value: "NOT_TODAY",
+    label: "Not today",
+    description: "Build my route only.",
+  },
+  {
+    value: "OPEN",
+    label: "Open to wandrs",
+    description: "Show people with overlapping strands.",
+  },
+  {
+    value: "EASY_MOMENTS",
+    label: "Only easy moments",
+    description: "Suggest matches around coffee, food or relaxed stops.",
+  },
+];
+
+export const groupCompositionOptions: Array<
+  OnboardingOption<SocialGroupComposition>
+> = [
+  {
+    value: "NO_PREFERENCE",
+    label: "No preference",
+    description: "Open to any safe match.",
+  },
+  {
+    value: "WOMEN_ONLY",
+    label: "Women only",
+    description: "Prioritize women travelers.",
+  },
+  {
+    value: "MIXED",
+    label: "Mixed group",
+    description: "Open to mixed groups.",
+  },
+];
+
+export const groupSizeOptions: Array<OnboardingOption<SocialGroupSize>> = [
+  {
+    value: "ONE_ON_ONE",
+    label: "1:1",
+    description: "One person.",
+  },
+  {
+    value: "SMALL_GROUP",
+    label: "Small group",
+    description: "2-4 people.",
+  },
+  {
+    value: "ANY",
+    label: "Any",
+    description: "Let Wandr decide.",
+  },
+];
+
+export const meetupStyleOptions: Array<OnboardingOption<SocialMeetupStyle>> = [
+  {
+    value: "COFFEE",
+    label: "Coffee",
+    description: "Low-pressure cafe overlap.",
+  },
+  {
+    value: "MEAL",
+    label: "Meal",
+    description: "Meet around lunch or dinner.",
+  },
+  {
+    value: "WALK",
+    label: "Walk",
+    description: "Share a scenic leg.",
+  },
+  {
+    value: "NIGHT",
+    label: "Night",
+    description: "Evening-friendly matches.",
+  },
+  {
+    value: "ANY",
+    label: "Any",
+    description: "Use the strongest overlap.",
   },
 ];
 
@@ -674,7 +769,7 @@ export const itineraryTemplates: Record<string, Itinerary> = {
       averageRating: 4.6,
       stopCount: culturalStops.length,
     },
-    overlapLabel: "3 wandrers overlap your strand",
+    overlapLabel: "3 wandrs overlap your strand",
     overlapSubhead: "MATE Museum · now · same window",
     stops: culturalStops,
   },
@@ -698,7 +793,7 @@ export const itineraryTemplates: Record<string, Itinerary> = {
       averageRating: 4.5,
       stopCount: foodieStops.length,
     },
-    overlapLabel: "2 wandrers overlap your strand",
+    overlapLabel: "2 wandrs overlap your strand",
     overlapSubhead: "Isolina · lunch window · shared appetite",
     stops: foodieStops,
   },
@@ -722,7 +817,7 @@ export const itineraryTemplates: Record<string, Itinerary> = {
       averageRating: 4.6,
       stopCount: urbanistStops.length,
     },
-    overlapLabel: "2 wandrers overlap your strand",
+    overlapLabel: "2 wandrs overlap your strand",
     overlapSubhead: "Puente de los Suspiros · later today",
     stops: urbanistStops,
   },
@@ -746,7 +841,7 @@ export const itineraryTemplates: Record<string, Itinerary> = {
       averageRating: 4.5,
       stopCount: bohemianStops.length,
     },
-    overlapLabel: "1 wandrer overlaps your strand",
+    overlapLabel: "1 wandr overlaps your strand",
     overlapSubhead: "Juanito · evening window · same tempo",
     stops: bohemianStops,
   },
@@ -1413,7 +1508,7 @@ const culturalOverlap: ItineraryOverlap = {
   count: 3,
   matchCopy:
     "Wandr detected people with the same stop and a compatible time window. No chat, no GPS exactness, just a lightweight social layer for the demo.",
-  wandrers: [
+  wandrs: [
     {
       id: "maya",
       initials: "M",
@@ -1554,7 +1649,7 @@ const foodieOverlap: ItineraryOverlap = {
   count: 2,
   matchCopy:
     "Food overlap is lighter-weight for MVP: same meal window, same district, compatible pace. Enough to validate the social premise without real-time geolocation.",
-  wandrers: [culturalOverlap.wandrers[1], culturalOverlap.wandrers[2]],
+  wandrs: [culturalOverlap.wandrs[1], culturalOverlap.wandrs[2]],
 };
 
 const urbanistOverlap: ItineraryOverlap = {
@@ -1565,7 +1660,7 @@ const urbanistOverlap: ItineraryOverlap = {
   count: 2,
   matchCopy:
     "The strongest overlap in the urban route happens at the district handoff, where multiple strands naturally compress into the same landmark.",
-  wandrers: [culturalOverlap.wandrers[0], culturalOverlap.wandrers[1]],
+  wandrs: [culturalOverlap.wandrs[0], culturalOverlap.wandrs[1]],
 };
 
 const bohemianOverlap: ItineraryOverlap = {
@@ -1576,7 +1671,7 @@ const bohemianOverlap: ItineraryOverlap = {
   count: 1,
   matchCopy:
     "Bohemian overlap is intentionally sparse. That makes the social signal feel more deliberate and less like a feed mechanic.",
-  wandrers: [culturalOverlap.wandrers[0]],
+  wandrs: [culturalOverlap.wandrs[0]],
 };
 
 export const overlapTemplates: Record<string, ItineraryOverlap> = {

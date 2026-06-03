@@ -10,7 +10,7 @@
   --strand-warn-bg: rgba(201, 74, 26, 0.07);
   --strand-green: #1a6b45;
   position: relative;
-  min-height: calc(100vh - 40px);
+  min-height: 100%;
   background: var(--strand-bg);
   color: var(--strand-ink);
   font-family: var(--font-mono);
@@ -20,7 +20,7 @@
 .strand-replica__app {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 40px);
+  min-height: 100%;
   max-width: 430px;
   margin: 0 auto;
   position: relative;
@@ -293,7 +293,7 @@
   flex-shrink: 0;
 }
 
-.strand-replica__wandrer-nudge {
+.strand-replica__wandr-nudge {
   margin: 10px 24px 0;
   border: 1px solid rgba(15, 14, 12, 0.18);
   padding: 11px 16px;
@@ -316,7 +316,7 @@
   }
 }
 
-.strand-replica__wandrer-nudge:hover {
+.strand-replica__wandr-nudge:hover {
   background: rgba(15, 14, 12, 0.06);
 }
 
@@ -432,12 +432,19 @@
 .strand-replica__canvas {
   display: block;
   width: 100%;
-  touch-action: none;
+  touch-action: pan-y;
   position: relative;
   z-index: 0;
 }
 
 .strand-replica__detail-panel {
+  --strand-bg: #f5f3ef;
+  --strand-ink: #0f0e0c;
+  --strand-ink-2: #3a3832;
+  --strand-ghost: rgba(15, 14, 12, 0.12);
+  --strand-warn: #c94a1a;
+  --strand-green: #1a6b45;
+
   position: fixed;
   bottom: 0;
   left: 50%;
@@ -738,8 +745,14 @@
 }
 
 @media (max-width: 440px) {
-  .strand-replica,
-  .strand-replica__app {
+  .strand-replica {
     min-height: 100vh;
+    max-height: 100vh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+  }
+
+  .strand-replica__app {
+    min-height: 100%;
   }
 }

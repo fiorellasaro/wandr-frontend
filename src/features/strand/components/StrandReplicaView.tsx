@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import type { Itinerary, ItineraryStop } from "@/entities/itinerary/types";
-import type { ItineraryOverlap } from "@/entities/wandrer/types";
+import type { ItineraryOverlap } from "@/entities/wandr/types";
 
 import { StrandReplicaCanvas, type StrandReplicaStop } from "@/features/strand/components/StrandReplicaCanvas";
 import {
@@ -14,11 +14,12 @@ import {
   getStopDistToNext,
 } from "@/features/strand/lib/stopDetail";
 
-import "@/features/strand/strandReplica.css";
+import "@/features/strand/strandReplica.scss";
 
 interface StrandReplicaViewProps {
   itinerary: Itinerary;
   overlap: ItineraryOverlap | null;
+  currentDate: Date;
   showVisitedBanner: boolean;
   onReplan: () => void;
   onCheckIn: (stopId: string) => void;
@@ -57,17 +58,103 @@ function mapSummaryTag(tag: string) {
   return tag;
 }
 
-function toCanvasStops(stops: ItineraryStop[]) {
+function parseTimeLabelMinutes(label: string) {
+  const matches = Array.from(label.matchAll(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)/gi));
+  const match = matches.at(-1);
+
+  if (!match) {
+    return null;
+  }
+
+  const [, hourValue, minuteValue = "0", periodValue] = match;
+  const period = periodValue.toUpperCase();
+  let hour = Number.parseInt(hourValue, 10);
+  const minute = Number.parseInt(minuteValue, 10);
+
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+    return null;
+  }
+
+  if (period === "AM" && hour === 12) {
+    hour = 0;
+  } else if (period === "PM" && hour !== 12) {
+    hour += 12;
+  }
+
+  return hour * 60 + minute;
+}
+
+function normalizeStopMinutes(stops: ItineraryStop[]) {
+  let dayOffset = 0;
+  let previous = -Infinity;
+
+  return stops.map((stop) => {
+    const minutes = parseTimeLabelMinutes(stop.timeLabel);
+
+    if (minutes === null) {
+      return null;
+    }
+
+    let normalized = minutes + dayOffset;
+
+    while (normalized < previous) {
+      dayOffset += 24 * 60;
+      normalized = minutes + dayOffset;
+    }
+
+    previous = normalized;
+
+    return normalized;
+  });
+}
+
+function getClosestStopIndex(stops: ItineraryStop[], currentDate: Date) {
+  const stopMinutes = normalizeStopMinutes(stops);
+  const validMinutes = stopMinutes.filter((minutes) => minutes !== null);
+
+  if (validMinutes.length === 0) {
+    return stops.findIndex((stop) => stop.state === "active");
+  }
+
+  const firstStopMinutes = validMinutes[0];
+  const lastStopMinutes = validMinutes[validMinutes.length - 1];
+  let currentMinutes = currentDate.getHours() * 60 + currentDate.getMinutes();
+
+  while (currentMinutes < firstStopMinutes - 12 * 60) {
+    currentMinutes += 24 * 60;
+  }
+
+  while (currentMinutes > lastStopMinutes + 12 * 60) {
+    currentMinutes -= 24 * 60;
+  }
+
+  return stopMinutes.reduce(
+    (closest, minutes, index) => {
+      if (minutes === null) {
+        return closest;
+      }
+
+      const distance = Math.abs(minutes - currentMinutes);
+
+      return distance < closest.distance ? { index, distance } : closest;
+    },
+    { index: -1, distance: Number.POSITIVE_INFINITY },
+  ).index;
+}
+
+function toCanvasStops(stops: ItineraryStop[], currentDate: Date) {
+  const closestStopIndex = getClosestStopIndex(stops, currentDate);
+
   return stops.map((stop, index): StrandReplicaStop => {
     const next = stops[index + 1];
     const state =
-      stop.state === "done"
+      index === closestStopIndex
+        ? "active"
+        : stop.state === "done"
         ? "done"
-        : stop.state === "active"
-          ? "active"
-          : stop.openState === "LIMITED"
-            ? "warn"
-            : "upcoming";
+        : stop.openState === "LIMITED"
+          ? "warn"
+          : "upcoming";
     const walkIn =
       stop.tags.some((tag) => tag.label.toLowerCase().includes("walk-in")) ||
       stop.tier === "LANDMARK";
@@ -93,6 +180,7 @@ function toCanvasStops(stops: ItineraryStop[]) {
 export function StrandReplicaView({
   itinerary,
   overlap,
+  currentDate,
   showVisitedBanner,
   onReplan,
   onCheckIn,
@@ -112,7 +200,7 @@ export function StrandReplicaView({
     });
   }, [itinerary]);
 
-  const canvasStops = toCanvasStops(itinerary.stops);
+  const canvasStops = toCanvasStops(itinerary.stops, currentDate);
   const matchStopIndex = overlap
     ? Math.max(
         0,
@@ -129,7 +217,7 @@ export function StrandReplicaView({
       ? getStopDetailActions(selectedStop, selectedStopIndex, itinerary.stops.length)
       : [];
 
-  const initials = overlap?.wandrers.slice(0, 3).map((wandrer) => wandrer.initials) ?? ["M", "S", "R"];
+  const initials = overlap?.wandrs.slice(0, 3).map((wandr) => wandr.initials) ?? ["M", "S", "R"];
 
   const handleDetailAction = (action: StrandDetailActionLabel) => {
     if (!selectedStop) {
@@ -164,10 +252,10 @@ export function StrandReplicaView({
         <div className="strand-replica__app">
           <header className="strand-replica__header">
             <h1 className="strand-replica__wordmark">WANDR</h1>
-            <div className="strand-replica__loc">
+            <Link className="strand-replica__loc" to="/profile" aria-label="Open profile">
               <div className="strand-replica__loc-dot" />
-              {itinerary.startLabel}
-            </div>
+              Profile
+            </Link>
           </header>
 
           <div className="strand-replica__status-row">
@@ -248,7 +336,7 @@ export function StrandReplicaView({
           </button>
 
           {overlap ? (
-            <Link className="strand-replica__wandrer-nudge" to="overlaps">
+            <Link className="strand-replica__wandr-nudge" to="overlaps">
               <div className="strand-replica__nudge-avatars">
                 {initials.map((initial, index) => (
                   <div
@@ -284,6 +372,7 @@ export function StrandReplicaView({
 
           <div className="strand-replica__dna-wrap">
             <StrandReplicaCanvas
+              currentDate={currentDate}
               matchStopIndex={matchStopIndex}
               onSelectStop={setSelectedStopIndex}
               pulseSignal={pulseSignal}

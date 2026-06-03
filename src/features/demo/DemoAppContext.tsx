@@ -68,7 +68,7 @@ interface DemoContextValue {
   replanStrand: (itineraryId: string) => void;
   markStopDone: (itineraryId: string, stopId: string) => void;
   toggleMeetups: () => void;
-  sendNod: (itineraryId: string, wandrerId: string) => {
+  sendNod: (itineraryId: string, wandrId: string) => {
     matched: boolean;
     alreadySent: boolean;
   };
@@ -113,6 +113,10 @@ function normalizePreferences(
     foodPreference:
       preferences.foodPreference ??
       (preferences.includeFood === true ? "MEAL" : "NONE"),
+    socialPreferences: {
+      ...defaults.socialPreferences,
+      ...preferences.socialPreferences,
+    },
   };
 }
 
@@ -281,10 +285,10 @@ export function DemoAppProvider({ children }: PropsWithChildren) {
     toggleMeetups() {
       dispatch({ type: "toggleMeetups" });
     },
-    sendNod(itineraryId, wandrerId) {
+    sendNod(itineraryId, wandrId) {
       const overlap = mockWandrService.getOverlap(itineraryId);
-      const wandrer = overlap?.wandrers.find((item) => item.id === wandrerId);
-      const key = `${itineraryId}:${wandrerId}`;
+      const wandr = overlap?.wandrs.find((item) => item.id === wandrId);
+      const key = `${itineraryId}:${wandrId}`;
       const alreadySent = state.sentNods.includes(key);
 
       if (!alreadySent) {
@@ -295,13 +299,13 @@ export function DemoAppProvider({ children }: PropsWithChildren) {
         type: "setToast",
         payload: alreadySent
           ? "Nod already sent"
-          : wandrer?.mutualNod
-            ? `Mutual nod with ${wandrer.name.split(" ")[0]}`
-            : `Nod sent to ${wandrer?.name ?? "wandrer"}`,
+          : wandr?.mutualNod
+            ? `Mutual nod with ${wandr.name.split(" ")[0]}`
+            : `Nod sent to ${wandr?.name ?? "wandr"}`,
       });
 
       return {
-        matched: Boolean(wandrer?.mutualNod),
+        matched: Boolean(wandr?.mutualNod),
         alreadySent,
       };
     },

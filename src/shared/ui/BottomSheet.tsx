@@ -5,6 +5,7 @@ interface BottomSheetProps extends PropsWithChildren {
   title: string;
   onClose: () => void;
   footer?: ReactNode;
+  className?: string;
 }
 
 export function BottomSheet({
@@ -12,8 +13,13 @@ export function BottomSheet({
   title,
   onClose,
   footer,
+  className,
   children,
 }: BottomSheetProps) {
+  const panelClassName = className
+    ? `sheet-panel ${className}`
+    : "sheet-panel";
+
   return (
     <>
       <button
@@ -22,7 +28,7 @@ export function BottomSheet({
         onClick={onClose}
         type="button"
       />
-      <section className="sheet-panel">
+      <section className={panelClassName}>
         <button
           aria-label="Close panel"
           className="sheet-panel__handle"

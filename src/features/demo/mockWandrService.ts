@@ -1,6 +1,6 @@
 import type { Itinerary } from "@/entities/itinerary/types";
 import type { FoodPreference, OnboardingPreferences } from "@/entities/onboarding/types";
-import type { ItineraryOverlap, WandrerProfile } from "@/entities/wandrer/types";
+import type { ItineraryOverlap, WandrProfile } from "@/entities/wandr/types";
 
 import {
   defaultPreferences,
@@ -173,13 +173,13 @@ export const mockWandrService = {
     return overlap ? clone(overlap) : null;
   },
 
-  getWandrer(itineraryId: string, wandrerId: string): WandrerProfile | null {
+  getWandr(itineraryId: string, wandrId: string): WandrProfile | null {
     const overlap = overlapTemplates[itineraryId];
     if (!overlap) {
       return null;
     }
 
-    const wandrer = overlap.wandrers.find((item) => item.id === wandrerId);
-    return wandrer ? clone(wandrer) : null;
+    const wandr = overlap.wandrs.find((item) => item.id === wandrId);
+    return wandr ? clone(wandr) : null;
   },
 };

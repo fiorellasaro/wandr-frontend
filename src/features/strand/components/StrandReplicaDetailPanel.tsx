@@ -1,3 +1,5 @@
+import { createPortal } from "react-dom";
+
 import type { ItineraryStop, TagTone } from "@/entities/itinerary/types";
 
 export type StrandDetailActionLabel =
@@ -39,14 +41,8 @@ export function StrandReplicaDetailPanel({
   onClose,
   onAction,
 }: StrandReplicaDetailPanelProps) {
-  const hidden = !stop;
-
   if (!stop) {
-    return (
-      <div className="strand-replica__detail-panel strand-replica__detail-panel--hidden">
-        <button className="strand-replica__panel-drag" onClick={onClose} type="button" />
-      </div>
-    );
+    return null;
   }
 
   const fullStars = Math.floor(stop.rating);
@@ -56,10 +52,8 @@ export function StrandReplicaDetailPanel({
   const visited = stop.state === "done";
   const isLocal = stop.tier === "LOCAL";
 
-  return (
-    <div
-      className={`strand-replica__detail-panel${hidden ? " strand-replica__detail-panel--hidden" : ""}`}
-    >
+  const panel = (
+    <div className="strand-replica__detail-panel">
       <button className="strand-replica__panel-drag" onClick={onClose} type="button" />
       <div className="strand-replica__panel-time">{stop.timeLabel}</div>
 
@@ -135,4 +129,6 @@ export function StrandReplicaDetailPanel({
       </div>
     </div>
   );
+
+  return createPortal(panel, document.body);
 }

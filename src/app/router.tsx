@@ -1,12 +1,14 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 
 import { MobileLayout } from "@/app/layouts/MobileLayout";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { OnboardingPage } from "@/pages/OnboardingPage";
+import { OwnProfilePage } from "@/pages/OwnProfilePage";
 import { OverlapsSheetRoute } from "@/pages/OverlapsSheetRoute";
 import { StopSheetRoute } from "@/pages/StopSheetRoute";
 import { StrandShellPage } from "@/pages/StrandShellPage";
-import { WandrerSheetRoute } from "@/pages/WandrerSheetRoute";
+import { WandrSheetRoute } from "@/pages/WandrSheetRoute";
+import { WelcomePage } from "@/pages/WelcomePage";
 
 export const router = createBrowserRouter([
   {
@@ -15,11 +17,15 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/onboarding" replace />,
+        element: <WelcomePage />,
       },
       {
         path: "onboarding",
         element: <OnboardingPage />,
+      },
+      {
+        path: "profile",
+        element: <OwnProfilePage />,
       },
       {
         path: "strand/:itineraryId",
@@ -34,8 +40,8 @@ export const router = createBrowserRouter([
             element: <OverlapsSheetRoute />,
           },
           {
-            path: "wandrer/:wandrerId",
-            element: <WandrerSheetRoute />,
+            path: "wandr/:wandrId",
+            element: <WandrSheetRoute />,
           },
         ],
       },

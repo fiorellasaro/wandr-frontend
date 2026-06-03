@@ -1,7 +1,5 @@
 import { useEffect, useRef } from "react";
 
-import type { ItineraryStop } from "@/entities/itinerary/types";
-
 type CanvasStopState = "done" | "active" | "warn" | "upcoming";
 
 export interface StrandReplicaStop {
@@ -20,6 +18,7 @@ export interface StrandReplicaStop {
 
 interface StrandReplicaCanvasProps {
   stops: StrandReplicaStop[];
+  currentDate: Date;
   matchStopIndex: number;
   selectedStopIndex: number | null;
   onSelectStop: (index: number | null) => void;
@@ -44,6 +43,153 @@ function lerp(a: number, b: number, t: number) {
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
+}
+
+function getDateMinutes(date: Date) {
+  return date.getHours() * 60 + date.getMinutes();
+}
+
+function parseTimeLabelMinutes(label: string) {
+  const matches = Array.from(label.matchAll(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)/gi));
+  const match = matches.at(-1);
+
+  if (!match) {
+    return null;
+  }
+
+  const [, hourValue, minuteValue = "0", periodValue] = match;
+  const period = periodValue.toUpperCase();
+  let hour = Number.parseInt(hourValue, 10);
+  const minute = Number.parseInt(minuteValue, 10);
+
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+    return null;
+  }
+
+  if (period === "AM" && hour === 12) {
+    hour = 0;
+  } else if (period === "PM" && hour !== 12) {
+    hour += 12;
+  }
+
+  return hour * 60 + minute;
+}
+
+function normalizeStopMinutes(stops: StrandReplicaStop[]) {
+  let dayOffset = 0;
+  let previous = -Infinity;
+
+  return stops.map((stop) => {
+    const minutes = parseTimeLabelMinutes(stop.time);
+
+    if (minutes === null) {
+      return null;
+    }
+
+    let normalized = minutes + dayOffset;
+
+    while (normalized < previous) {
+      dayOffset += 24 * 60;
+      normalized = minutes + dayOffset;
+    }
+
+    previous = normalized;
+
+    return normalized;
+  });
+}
+
+function normalizeCurrentMinutes(
+  currentMinutes: number,
+  firstStopMinutes: number,
+  lastStopMinutes: number,
+) {
+  let normalized = currentMinutes;
+
+  while (normalized < firstStopMinutes - 12 * 60) {
+    normalized += 24 * 60;
+  }
+
+  while (normalized > lastStopMinutes + 12 * 60) {
+    normalized -= 24 * 60;
+  }
+
+  return normalized;
+}
+
+function getCurrentStrandPosition(
+  nodes: DrawNode[],
+  currentMinutes: number,
+) {
+  const stopMinutes = normalizeStopMinutes(nodes.map((node) => node.stop));
+  const firstStopMinutes = stopMinutes.find((minutes) => minutes !== null);
+  let lastStopMinutes: number | null | undefined;
+
+  for (let index = stopMinutes.length - 1; index >= 0; index -= 1) {
+    if (stopMinutes[index] !== null) {
+      lastStopMinutes = stopMinutes[index];
+      break;
+    }
+  }
+
+  if (
+    nodes.length === 0 ||
+    firstStopMinutes === undefined ||
+    firstStopMinutes === null ||
+    lastStopMinutes === undefined ||
+    lastStopMinutes === null
+  ) {
+    return null;
+  }
+
+  const normalizedCurrent = normalizeCurrentMinutes(
+    currentMinutes,
+    firstStopMinutes,
+    lastStopMinutes,
+  );
+
+  for (let index = 0; index < stopMinutes.length; index += 1) {
+    const minutes = stopMinutes[index];
+
+    if (minutes === null) {
+      continue;
+    }
+
+    if (normalizedCurrent <= minutes) {
+      return {
+        y: nodes[index].y,
+        progress: 0,
+        labelAlign: "after" as const,
+      };
+    }
+
+    const nextMinutes = stopMinutes[index + 1];
+    const nextNode = nodes[index + 1];
+
+    if (nextMinutes === null || !nextNode) {
+      continue;
+    }
+
+    if (normalizedCurrent <= nextMinutes) {
+      const segmentProgress = clamp(
+        (normalizedCurrent - minutes) / Math.max(1, nextMinutes - minutes),
+        0,
+        1,
+      );
+
+      return {
+        y: lerp(nodes[index].y, nextNode.y, segmentProgress),
+        progress: segmentProgress,
+        labelAlign: "between" as const,
+      };
+    }
+  }
+
+  return {
+    y: nodes[nodes.length - 1].y,
+    progress: 1,
+    labelAlign: "before" as const,
+  };
 }
 
 function wrapText(
@@ -85,6 +231,7 @@ function extractFirstSentence(text: string) {
 
 export function StrandReplicaCanvas({
   stops,
+  currentDate,
   matchStopIndex,
   selectedStopIndex,
   onSelectStop,
@@ -104,9 +251,11 @@ export function StrandReplicaCanvas({
   const globalMorphRef = useRef(0);
   const tickRef = useRef(0);
   const matchPulseRef = useRef(0);
+  const currentMinutesRef = useRef(getDateMinutes(currentDate));
   const stopsRef = useRef(stops);
 
   stopsRef.current = stops;
+  currentMinutesRef.current = getDateMinutes(currentDate);
 
   useEffect(() => {
     morphProgressRef.current = stops.map((_, index) => morphProgressRef.current[index] ?? 0);
@@ -328,6 +477,45 @@ export function StrandReplicaCanvas({
       context.fillStyle = "rgba(26,107,69,0.55)";
       context.textAlign = "center";
       context.fillText(`↓ ${distanceLabel}`, node.xL + 8, midY);
+      context.restore();
+    };
+
+    const drawCurrentTimeMarker = (nodes: DrawNode[]) => {
+      const position = getCurrentStrandPosition(nodes, currentMinutesRef.current);
+
+      if (!position) {
+        return;
+      }
+
+      const centerX = widthRef.current / 2;
+      const pulse = (Math.sin(tickRef.current * 5) + 1) / 2;
+      const radius = 4.5 + pulse * 1.5;
+      const labelY =
+        position.labelAlign === "after"
+          ? position.y + 18
+          : position.labelAlign === "before"
+            ? position.y - 14
+            : position.y - 10;
+
+      context.save();
+      context.beginPath();
+      context.arc(centerX, position.y, 13 + pulse * 5, 0, Math.PI * 2);
+      context.strokeStyle = `rgba(26,107,69,${0.08 + pulse * 0.1})`;
+      context.lineWidth = 1;
+      context.stroke();
+
+      context.beginPath();
+      context.arc(centerX, position.y, radius, 0, Math.PI * 2);
+      context.fillStyle = "rgba(26,107,69,0.95)";
+      context.fill();
+      context.strokeStyle = "rgba(245,243,239,0.98)";
+      context.lineWidth = 2;
+      context.stroke();
+
+      context.font = "700 7px 'Space Mono', monospace";
+      context.fillStyle = "rgba(26,107,69,0.72)";
+      context.textAlign = "center";
+      context.fillText("NOW", centerX, labelY);
       context.restore();
     };
 
@@ -667,23 +855,32 @@ export function StrandReplicaCanvas({
         }
       });
 
-      matchPulseRef.current += 0.018;
-      const safeMatchIndex = Math.min(Math.max(matchStopIndex, 0), nodes.length - 1);
-      const matchNode = nodes[safeMatchIndex];
+      drawCurrentTimeMarker(nodes);
 
-      if (matchNode) {
+      matchPulseRef.current += 0.018;
+      const activeStopIndex = stopsRef.current.findIndex((stop) => stop.state === "active");
+      const safeActiveIndex =
+        activeStopIndex >= 0 ? Math.min(activeStopIndex, nodes.length - 1) : null;
+      const activeNode = safeActiveIndex !== null ? nodes[safeActiveIndex] : null;
+
+      if (activeNode) {
         for (let ring = 0; ring < 3; ring += 1) {
           const phase = (matchPulseRef.current + ring * 0.55) % 1;
           const ringRadius = 8 + phase * 28;
           const ringAlpha = (1 - phase) * 0.18;
 
           context.beginPath();
-          context.arc(matchNode.xL + (matchNode.xR - matchNode.xL) / 2, matchNode.y, ringRadius, 0, Math.PI * 2);
+          context.arc(activeNode.xL + (activeNode.xR - activeNode.xL) / 2, activeNode.y, ringRadius, 0, Math.PI * 2);
           context.strokeStyle = `rgba(15,14,12,${ringAlpha})`;
           context.lineWidth = 1;
           context.stroke();
         }
+      }
 
+      const safeMatchIndex = Math.min(Math.max(matchStopIndex, 0), nodes.length - 1);
+      const matchNode = nodes[safeMatchIndex];
+
+      if (matchNode) {
         context.save();
         context.font = "700 8px 'Space Mono', monospace";
         context.fillStyle = "rgba(15,14,12,0.4)";

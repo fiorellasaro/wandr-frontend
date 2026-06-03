@@ -10,6 +10,27 @@ export type FoodPreference = "MEAL" | "SNACK" | "NONE";
 
 export type Budget = "LOW" | "MID" | "HIGH" | "FLEX";
 
+export type SocialGroupComposition =
+  | "NO_PREFERENCE"
+  | "WOMEN_ONLY"
+  | "MIXED";
+
+export type SocialGroupSize = "ONE_ON_ONE" | "SMALL_GROUP" | "ANY";
+
+export type SocialMeetupStyle =
+  | "COFFEE"
+  | "MEAL"
+  | "WALK"
+  | "NIGHT"
+  | "ANY";
+
+export interface SocialPreferences {
+  enabled: boolean;
+  groupComposition: SocialGroupComposition;
+  groupSize: SocialGroupSize;
+  meetupStyle: SocialMeetupStyle;
+}
+
 export interface OnboardingPreferences {
   city: City;
   districts: District[];
@@ -17,6 +38,7 @@ export interface OnboardingPreferences {
   interests: Interest[];
   pace: Pace;
   foodPreference: FoodPreference;
+  socialPreferences: SocialPreferences;
   preferWalking: boolean;
   avoidVisited: boolean;
   budget: Budget;
