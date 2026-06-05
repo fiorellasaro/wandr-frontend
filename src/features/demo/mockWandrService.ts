@@ -1,5 +1,10 @@
 import type { Itinerary } from "@/entities/itinerary/types";
-import type { FoodPreference, OnboardingPreferences } from "@/entities/onboarding/types";
+import type {
+  Budget,
+  FoodPreference,
+  OnboardingPreferences,
+  Pace,
+} from "@/entities/onboarding/types";
 import type { ItineraryOverlap, WandrProfile } from "@/entities/wandr/types";
 
 import {
@@ -36,11 +41,24 @@ const foodPreferenceSummaryTag: Record<FoodPreference, string> = {
 
 const foodPreferenceNote: Record<FoodPreference, string> = {
   MEAL:
-    "Includes a proper sit-down meal stop with a longer window in the route.",
+    "A proper meal window is built into the route, so the food stop has enough time to feel intentional.",
   SNACK:
-    "Keeps food to a short coffee, snack or pickup pause instead of a full meal.",
+    "Food stays light: a coffee, snack or pickup pause instead of a full meal.",
   NONE:
-    "Built without a dedicated food stop so the route stays focused on places and pacing.",
+    "There is no dedicated food stop, keeping the strand focused on places, walking and pacing.",
+};
+
+const paceDescriptions: Record<Pace, string> = {
+  TRANQUI: "slow scenic pace",
+  MEDIUM: "balanced pace",
+  INTENSE: "fast highlights pace",
+};
+
+const budgetDescriptions: Record<Budget, string> = {
+  LOW: "low spend",
+  MID: "mid budget",
+  HIGH: "higher spend ok",
+  FLEX: "flexible budget",
 };
 
 function roundToOneDecimal(value: number) {
@@ -64,6 +82,42 @@ function uniqueTags(tags: string[]) {
   return Array.from(new Set(tags));
 }
 
+function buildPreferenceHighlights(preferences: OnboardingPreferences) {
+  const districts =
+    preferences.districts.length > 0
+      ? preferences.districts.join(" + ")
+      : preferences.city;
+
+  return [
+    districts,
+    preferences.interests
+      .map((interest) => interestToLabel[interest] ?? interest)
+      .join(" + "),
+    paceDescriptions[preferences.pace],
+    foodPreferenceSummaryTag[preferences.foodPreference].toLowerCase(),
+    budgetDescriptions[preferences.budget],
+  ];
+}
+
+function buildItineraryDescription(preferences: OnboardingPreferences) {
+  const districtText =
+    preferences.districts.length === 1
+      ? preferences.districts[0]
+      : preferences.districts.join(" + ");
+  const interestText = preferences.interests
+    .map((interest) => interestToLabel[interest] ?? interest)
+    .join(" + ")
+    .toLowerCase();
+  const walkText = preferences.preferWalking
+    ? "keeps the stops close enough to walk"
+    : "allows short transfers where they make the route stronger";
+  const visitedText = preferences.avoidVisited
+    ? "Previously visited places are avoided."
+    : "Familiar favorites can still appear when they fit.";
+
+  return `A ${preferences.durationHours}h ${districtText} strand shaped around ${interestText}, ${paceDescriptions[preferences.pace]} and ${budgetDescriptions[preferences.budget]}. It ${walkText}. ${foodPreferenceNote[preferences.foodPreference]} ${visitedText}`;
+}
+
 function applyFoodPreference(itinerary: Itinerary, foodPreference: FoodPreference) {
   const overrides = foodPreferenceStopOverrides[itinerary.id]?.[foodPreference] ?? [];
 
@@ -81,7 +135,6 @@ function applyFoodPreference(itinerary: Itinerary, foodPreference: FoodPreferenc
     ...itinerary.summaryTags.filter((tag) => !isFoodSummaryTag(tag)),
     foodPreferenceSummaryTag[foodPreference],
   ]);
-  itinerary.description = `${itinerary.description} ${foodPreferenceNote[foodPreference]}`;
   itinerary.stats.stopCount = itinerary.stops.length;
   itinerary.stats.totalDistanceKm = roundToOneDecimal(
     itinerary.stops.reduce(
@@ -139,6 +192,8 @@ export const mockWandrService = {
       .map((interest) => interestToLabel[interest] ?? interest)
       .join(" + ")}`;
     applyFoodPreference(next, preferences.foodPreference);
+    next.preferenceHighlights = buildPreferenceHighlights(preferences);
+    next.description = buildItineraryDescription(preferences);
 
     if (preferences.districts.length > 0) {
       next.districts = preferences.districts;
@@ -159,6 +214,18 @@ export const mockWandrService = {
     const result = applyVariant(template, variantIndex);
 
     applyFoodPreference(result.itinerary, preferences.foodPreference);
+    result.itinerary.generatedFor = preferences.interests;
+    result.itinerary.vibe = `from your vibe · ${preferences.interests
+      .map((interest) => interestToLabel[interest] ?? interest)
+      .join(" + ")}`;
+    result.itinerary.preferenceHighlights = buildPreferenceHighlights(preferences);
+    result.itinerary.description = buildItineraryDescription(preferences);
+    result.itinerary.stats.totalDurationHours = preferences.durationHours;
+
+    if (preferences.districts.length > 0) {
+      result.itinerary.districts = preferences.districts;
+      result.itinerary.startLabel = `${preferences.districts.join(" + ")}, Lima`;
+    }
 
     return result;
   },

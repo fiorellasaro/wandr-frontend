@@ -1,10 +1,11 @@
-import { Link, useOutletContext } from "react-router-dom";
+import { Link, Outlet, useOutletContext } from "react-router-dom";
 
 import { useDemoApp } from "@/features/demo/DemoAppContext";
 import type { StrandOutletContext } from "@/pages/StrandShellPage";
 
 export function OverlapsSheetRoute() {
-  const { overlap } = useOutletContext<StrandOutletContext>();
+  const strandContext = useOutletContext<StrandOutletContext>();
+  const { overlap } = strandContext;
   const { state, toggleMeetups } = useDemoApp();
 
   if (!overlap) {
@@ -45,10 +46,7 @@ export function OverlapsSheetRoute() {
                   ))}
                 </div>
               </div>
-              <Link
-                className="button button--ghost button--small"
-                to={`../wandr/${wandr.id}`}
-              >
+              <Link className="button button--ghost button--small" to={`wandr/${wandr.id}`}>
                 View
               </Link>
             </article>
@@ -69,6 +67,7 @@ export function OverlapsSheetRoute() {
           </div>
         </div>
       </div>
+      <Outlet context={strandContext} />
     </section>
   );
 }

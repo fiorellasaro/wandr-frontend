@@ -2,7 +2,7 @@ import type { District, Interest } from "@/entities/onboarding/types";
 
 export type ContentTier = "LANDMARK" | "LOCAL";
 
-export type StopState = "done" | "active" | "upcoming" | "warning";
+export type StopState = "done" | "skipped" | "active" | "upcoming" | "warning";
 
 export type OpenState = "OPEN" | "LIMITED" | "CLOSED_SOON";
 
@@ -50,6 +50,7 @@ export interface Itinerary {
   vibe: string;
   description: string;
   themeSource: string;
+  preferenceHighlights?: string[];
   generatedFor: Interest[];
   summaryTags: string[];
   startLabel: string;

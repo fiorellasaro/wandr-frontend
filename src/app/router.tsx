@@ -38,6 +38,12 @@ export const router = createBrowserRouter([
           {
             path: "overlaps",
             element: <OverlapsSheetRoute />,
+            children: [
+              {
+                path: "wandr/:wandrId",
+                element: <WandrSheetRoute />,
+              },
+            ],
           },
           {
             path: "wandr/:wandrId",

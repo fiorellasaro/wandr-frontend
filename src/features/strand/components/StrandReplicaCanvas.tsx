@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-type CanvasStopState = "done" | "active" | "warn" | "upcoming";
+type CanvasStopState = "done" | "skipped" | "active" | "warn" | "upcoming";
 
 export interface StrandReplicaStop {
   id: string;
@@ -352,8 +352,11 @@ export function StrandReplicaCanvas({
       let lineWidth = 1;
 
       if (stop.state === "done") {
-        fill = "rgba(15,14,12,0.08)";
-        stroke = "rgba(15,14,12,0.2)";
+        fill = "rgba(31,95,139,0.16)";
+        stroke = "rgba(31,95,139,0.72)";
+      } else if (stop.state === "skipped") {
+        fill = "rgba(201,74,26,0.12)";
+        stroke = "rgba(201,74,26,0.68)";
       } else if (stop.state === "active") {
         fill = "rgba(15,14,12,0.85)";
         stroke = "rgba(15,14,12,1)";

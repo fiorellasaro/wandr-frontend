@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import type { PropsWithChildren, ReactNode } from "react";
 
 interface BottomSheetProps extends PropsWithChildren {
@@ -16,23 +17,51 @@ export function BottomSheet({
   className,
   children,
 }: BottomSheetProps) {
-  const panelClassName = className
-    ? `sheet-panel ${className}`
-    : "sheet-panel";
+  const closeTimeoutRef = useRef<number | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
+  const panelClassName = [
+    "sheet-panel",
+    className,
+    isClosing ? "sheet-panel--closing" : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const backdropClassName = isClosing
+    ? "sheet-backdrop sheet-backdrop--closing"
+    : "sheet-backdrop";
+
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current !== null) {
+        window.clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleClose = () => {
+    if (isClosing) {
+      return;
+    }
+
+    setIsClosing(true);
+    closeTimeoutRef.current = window.setTimeout(() => {
+      onClose();
+    }, 180);
+  };
 
   return (
     <>
       <button
         aria-label="Close panel"
-        className="sheet-backdrop"
-        onClick={onClose}
+        className={backdropClassName}
+        onClick={handleClose}
         type="button"
       />
       <section className={panelClassName}>
         <button
           aria-label="Close panel"
           className="sheet-panel__handle"
-          onClick={onClose}
+          onClick={handleClose}
           type="button"
         />
         <div className="sheet-panel__header">
@@ -40,7 +69,7 @@ export function BottomSheet({
             <p className="sheet-panel__eyebrow">{eyebrow}</p>
             <h2 className="sheet-panel__title">{title}</h2>
           </div>
-          <button className="sheet-panel__close" onClick={onClose} type="button">
+          <button className="sheet-panel__close" onClick={handleClose} type="button">
             ✕
           </button>
         </div>

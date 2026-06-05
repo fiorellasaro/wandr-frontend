@@ -13,6 +13,11 @@ export interface WandrProfile {
   avatarTone: "ink" | "oak" | "marine";
   name: string;
   meta: string;
+  bio: string;
+  profileFacts: Array<{
+    label: string;
+    value: string;
+  }>;
   vibeTags: string[];
   overlapReason: string;
   currentStopLabel: string;

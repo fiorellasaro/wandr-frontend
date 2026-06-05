@@ -15,6 +15,7 @@ export function WandrSheetRoute() {
   const [matchUnlocked, setMatchUnlocked] = useState(false);
   const wandrData = mockWandrService.getWandr(itinerary.id, wandrId);
   const wandr = wandrData ? withLiveWandrProfileTime(wandrData, now) : null;
+  const closeToOverlaps = () => navigate(`/strand/${itinerary.id}/overlaps`);
 
   if (!wandr) {
     return null;
@@ -23,13 +24,13 @@ export function WandrSheetRoute() {
   return (
     <BottomSheet
       eyebrow="Compatible strand"
-      onClose={() => navigate("..", { relative: "path" })}
+      onClose={closeToOverlaps}
       title={wandr.name}
       footer={
         <>
           <button
             className="button button--ghost"
-            onClick={() => navigate("..", { relative: "path" })}
+            onClick={closeToOverlaps}
             type="button"
           >
             Back
@@ -68,15 +69,13 @@ export function WandrSheetRoute() {
           </span>
         </div>
 
-        <div className="mini-strand">
-          {wandr.strandPreview.map((stop) => (
-            <div className="mini-strand__row" key={`${wandr.id}-${stop.timeLabel}-${stop.name}`}>
-              <span className={`mini-strand__dot mini-strand__dot--${stop.state}`} />
-              <div>
-                <p className="mini-strand__time">{stop.timeLabel}</p>
-                <p className="mini-strand__name">{stop.name}</p>
-                <p className="mini-strand__district">{stop.district}</p>
-              </div>
+        <p className="detail-stack__body">{wandr.bio}</p>
+
+        <div className="profile-facts">
+          {wandr.profileFacts.map((fact) => (
+            <div className="profile-facts__row" key={fact.label}>
+              <p className="profile-facts__label">{fact.label}</p>
+              <p className="profile-facts__value">{fact.value}</p>
             </div>
           ))}
         </div>

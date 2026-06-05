@@ -20,7 +20,7 @@ export interface StrandOutletContext {
 export function StrandShellPage() {
   const { itineraryId = "" } = useParams();
   const { pathname } = useLocation();
-  const { state, replanStrand, dismissToast, markStopDone } = useDemoApp();
+  const { state, replanStrand, dismissToast, markStopDone, markStopSkipped } = useDemoApp();
   const [isReplanning, setIsReplanning] = useState(false);
   const [replanSignal, setReplanSignal] = useState(0);
   const [pulseSignal, setPulseSignal] = useState(0);
@@ -77,7 +77,7 @@ export function StrandShellPage() {
     }, 2400);
   };
 
-  const isNearbyView = pathname === `/strand/${itinerary.id}/overlaps`;
+  const isNearbyView = pathname.startsWith(`/strand/${itinerary.id}/overlaps`);
 
   return (
     <>
@@ -92,6 +92,7 @@ export function StrandShellPage() {
             itinerary={liveItinerary}
             isReplanning={isReplanning}
             onCheckIn={(stopId) => markStopDone(itinerary.id, stopId)}
+            onSkip={(stopId) => markStopSkipped(itinerary.id, stopId)}
             onReplan={handleReplan}
             overlap={liveOverlap}
             pulseSignal={pulseSignal}

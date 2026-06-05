@@ -85,6 +85,12 @@ export function OwnProfilePage() {
               <p className="section-head__eyebrow">Travel DNA</p>
               <h2 className="section-head__title">Preferences</h2>
             </div>
+            <Link
+              className="button button--small button--ghost own-profile__edit-preferences"
+              to="/onboarding"
+            >
+              Edit
+            </Link>
           </div>
 
           <div className="tag-row">

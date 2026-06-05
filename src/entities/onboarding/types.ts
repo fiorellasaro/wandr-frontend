@@ -15,8 +15,6 @@ export type SocialGroupComposition =
   | "WOMEN_ONLY"
   | "MIXED";
 
-export type SocialGroupSize = "ONE_ON_ONE" | "SMALL_GROUP" | "ANY";
-
 export type SocialMeetupStyle =
   | "COFFEE"
   | "MEAL"
@@ -27,7 +25,7 @@ export type SocialMeetupStyle =
 export interface SocialPreferences {
   enabled: boolean;
   groupComposition: SocialGroupComposition;
-  groupSize: SocialGroupSize;
+  groupSize: number;
   meetupStyle: SocialMeetupStyle;
 }
 

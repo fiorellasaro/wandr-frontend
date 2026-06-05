@@ -23,6 +23,7 @@ interface StrandReplicaViewProps {
   showVisitedBanner: boolean;
   onReplan: () => void;
   onCheckIn: (stopId: string) => void;
+  onSkip: (stopId: string) => void;
   isReplanning: boolean;
   replanSignal: number;
   pulseSignal: number;
@@ -56,6 +57,19 @@ function mapSummaryTag(tag: string) {
   }
 
   return tag;
+}
+
+function isRedundantSummaryTag(tag: string) {
+  const normalized = tag.toLowerCase();
+
+  return (
+    normalized.includes("no food") ||
+    normalized.includes("snack") ||
+    normalized.includes("coffee") ||
+    normalized.includes("meal") ||
+    normalized.includes("lunch") ||
+    normalized.includes("food")
+  );
 }
 
 function parseTimeLabelMinutes(label: string) {
@@ -148,10 +162,12 @@ function toCanvasStops(stops: ItineraryStop[], currentDate: Date) {
   return stops.map((stop, index): StrandReplicaStop => {
     const next = stops[index + 1];
     const state =
-      index === closestStopIndex
-        ? "active"
-        : stop.state === "done"
+      stop.state === "done"
         ? "done"
+        : stop.state === "skipped"
+          ? "skipped"
+          : index === closestStopIndex
+        ? "active"
         : stop.openState === "LIMITED"
           ? "warn"
           : "upcoming";
@@ -184,6 +200,7 @@ export function StrandReplicaView({
   showVisitedBanner,
   onReplan,
   onCheckIn,
+  onSkip,
   isReplanning,
   replanSignal,
   pulseSignal,
@@ -216,6 +233,9 @@ export function StrandReplicaView({
     selectedStopIndex !== null && selectedStop
       ? getStopDetailActions(selectedStop, selectedStopIndex, itinerary.stops.length)
       : [];
+  const routeTags = itinerary.summaryTags.filter(
+    (tag) => !isRedundantSummaryTag(tag),
+  );
 
   const initials = overlap?.wandrs.slice(0, 3).map((wandr) => wandr.initials) ?? ["M", "S", "R"];
 
@@ -230,19 +250,9 @@ export function StrandReplicaView({
       return;
     }
 
-    if (action === "Navigate") {
-      window.open(selectedStop.mapUrl, "_blank", "noopener,noreferrer");
-      return;
-    }
-
-    if (action === "Keep it") {
+    if (action === "Skip") {
+      onSkip(selectedStop.id);
       setSelectedStopIndex(null);
-      return;
-    }
-
-    if (action === "Skip" || action === "Swap") {
-      setSelectedStopIndex(null);
-      onReplan();
     }
   };
 
@@ -288,35 +298,68 @@ export function StrandReplicaView({
             ) : null}
 
             <div className="strand-replica__theme-eyebrow">
-              <span className="strand-replica__theme-detected">◈ Theme detected</span>
+              <span className="strand-replica__theme-detected">
+                {itinerary.themeSource}
+              </span>
               <span className="strand-replica__theme-vibe">{itinerary.vibe}</span>
             </div>
 
             <h2 className="strand-replica__itin-title">{itinerary.title}</h2>
             <p className="strand-replica__itin-body">{itinerary.description}</p>
 
+            {itinerary.preferenceHighlights ? (
+              <div
+                aria-label="Onboarding preferences used"
+                className="strand-replica__brief-grid"
+              >
+                {itinerary.preferenceHighlights.map((highlight) => (
+                  <span className="strand-replica__brief-pill" key={highlight}>
+                    {highlight}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+
             <div className="strand-replica__itin-meta">
-              <div className="strand-replica__itin-stat">
-                <strong>{itinerary.stats.stopCount}</strong> stops
+              <div
+                aria-label={`${itinerary.stats.stopCount} stops`}
+                className="strand-replica__itin-stat"
+              >
+                <strong>{itinerary.stats.stopCount}</strong>
+                <span>stops</span>
               </div>
-              <div className="strand-replica__itin-stat">
-                <strong>{itinerary.stats.totalDistanceKm.toFixed(1)} km</strong> total
+              <div
+                aria-label={`${itinerary.stats.totalDistanceKm.toFixed(1)} km total`}
+                className="strand-replica__itin-stat"
+              >
+                <strong>{itinerary.stats.totalDistanceKm.toFixed(1)} km</strong>
+                <span>total</span>
               </div>
-              <div className="strand-replica__itin-stat">
+              <div
+                aria-label={`About ${itinerary.stats.totalDurationHours} hours`}
+                className="strand-replica__itin-stat"
+              >
                 <strong>~{itinerary.stats.totalDurationHours} hrs</strong>
+                <span>duration</span>
               </div>
-              <div className="strand-replica__itin-stat">
-                <strong>{itinerary.stats.averageRating.toFixed(1)} ★</strong> avg
+              <div
+                aria-label={`${itinerary.stats.averageRating.toFixed(1)} average rating`}
+                className="strand-replica__itin-stat"
+              >
+                <strong>{itinerary.stats.averageRating.toFixed(1)} ★</strong>
+                <span>avg</span>
               </div>
             </div>
 
-            <div className="strand-replica__theme-tags">
-              {itinerary.summaryTags.map((tag) => (
-                <span className="strand-replica__theme-tag" key={tag}>
-                  {mapSummaryTag(tag)}
-                </span>
-              ))}
-            </div>
+            {routeTags.length > 0 ? (
+              <div aria-label="Route signals" className="strand-replica__theme-tags">
+                {routeTags.map((tag) => (
+                  <span className="strand-replica__theme-tag" key={tag}>
+                    {mapSummaryTag(tag)}
+                  </span>
+                ))}
+              </div>
+            ) : null}
 
             <div className="strand-replica__source-note">
               <strong>◇ Landmark stops</strong> are sourced from Google Places and

@@ -15,7 +15,7 @@ export function StopSheetRoute() {
   const navigate = useNavigate();
   const { stopId = "" } = useParams();
   const { itinerary } = useOutletContext<StrandOutletContext>();
-  const { markStopDone, replanStrand } = useDemoApp();
+  const { markStopDone, markStopSkipped } = useDemoApp();
   const stopIndex = itinerary.stops.findIndex((item) => item.id === stopId);
   const stop = stopIndex >= 0 ? itinerary.stops[stopIndex] : null;
 
@@ -25,27 +25,18 @@ export function StopSheetRoute() {
 
   const actions = getStopDetailActions(stop, stopIndex, itinerary.stops.length);
   const distToNext = getStopDistToNext(itinerary.stops, stopIndex);
+  const closePath = `/strand/${itinerary.id}`;
 
   const handleAction = (action: StrandDetailActionLabel) => {
     if (action === "Check in") {
       markStopDone(itinerary.id, stop.id);
-      navigate("..", { relative: "path" });
+      navigate(closePath);
       return;
     }
 
-    if (action === "Navigate") {
-      window.open(stop.mapUrl, "_blank", "noopener,noreferrer");
-      return;
-    }
-
-    if (action === "Keep it") {
-      navigate("..", { relative: "path" });
-      return;
-    }
-
-    if (action === "Skip" || action === "Swap") {
-      replanStrand(itinerary.id);
-      navigate("..", { relative: "path" });
+    if (action === "Skip") {
+      markStopSkipped(itinerary.id, stop.id);
+      navigate(closePath);
     }
   };
 
@@ -54,7 +45,7 @@ export function StopSheetRoute() {
       actions={actions}
       distToNext={distToNext}
       onAction={handleAction}
-      onClose={() => navigate("..", { relative: "path" })}
+      onClose={() => navigate(closePath)}
       stop={stop}
     />
   );

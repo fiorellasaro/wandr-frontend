@@ -2,9 +2,6 @@ import type { Itinerary, ItineraryStop } from "@/entities/itinerary/types";
 import type {
   OnboardingOption,
   OnboardingPreferences,
-  SocialGroupComposition,
-  SocialGroupSize,
-  SocialMeetupStyle,
 } from "@/entities/onboarding/types";
 import type { FoodPreference, Interest, Pace } from "@/entities/onboarding/types";
 import type { ItineraryOverlap } from "@/entities/wandr/types";
@@ -24,7 +21,7 @@ export const defaultPreferences: OnboardingPreferences = {
   socialPreferences: {
     enabled: true,
     groupComposition: "NO_PREFERENCE",
-    groupSize: "SMALL_GROUP",
+    groupSize: 3,
     meetupStyle: "ANY",
   },
   preferWalking: true,
@@ -110,92 +107,6 @@ export const foodPreferenceOptions: Array<OnboardingOption<FoodPreference>> = [
   },
 ];
 
-export const socialModeOptions: Array<
-  OnboardingOption<"NOT_TODAY" | "OPEN" | "EASY_MOMENTS">
-> = [
-  {
-    value: "NOT_TODAY",
-    label: "Not today",
-    description: "Build my route only.",
-  },
-  {
-    value: "OPEN",
-    label: "Open to wandrs",
-    description: "Show people with overlapping strands.",
-  },
-  {
-    value: "EASY_MOMENTS",
-    label: "Only easy moments",
-    description: "Suggest matches around coffee, food or relaxed stops.",
-  },
-];
-
-export const groupCompositionOptions: Array<
-  OnboardingOption<SocialGroupComposition>
-> = [
-  {
-    value: "NO_PREFERENCE",
-    label: "No preference",
-    description: "Open to any safe match.",
-  },
-  {
-    value: "WOMEN_ONLY",
-    label: "Women only",
-    description: "Prioritize women travelers.",
-  },
-  {
-    value: "MIXED",
-    label: "Mixed group",
-    description: "Open to mixed groups.",
-  },
-];
-
-export const groupSizeOptions: Array<OnboardingOption<SocialGroupSize>> = [
-  {
-    value: "ONE_ON_ONE",
-    label: "1:1",
-    description: "One person.",
-  },
-  {
-    value: "SMALL_GROUP",
-    label: "Small group",
-    description: "2-4 people.",
-  },
-  {
-    value: "ANY",
-    label: "Any",
-    description: "Let Wandr decide.",
-  },
-];
-
-export const meetupStyleOptions: Array<OnboardingOption<SocialMeetupStyle>> = [
-  {
-    value: "COFFEE",
-    label: "Coffee",
-    description: "Low-pressure cafe overlap.",
-  },
-  {
-    value: "MEAL",
-    label: "Meal",
-    description: "Meet around lunch or dinner.",
-  },
-  {
-    value: "WALK",
-    label: "Walk",
-    description: "Share a scenic leg.",
-  },
-  {
-    value: "NIGHT",
-    label: "Night",
-    description: "Evening-friendly matches.",
-  },
-  {
-    value: "ANY",
-    label: "Any",
-    description: "Use the strongest overlap.",
-  },
-];
-
 export const budgetOptions: Array<
   OnboardingOption<OnboardingPreferences["budget"]>
 > = [
@@ -253,7 +164,7 @@ const culturalStops = [
     walkMinutesFromPrevious: 0,
     description:
       "Gallery-shop hybrid in a restored house with Peruvian craft, design objects and a garden courtyard that works as a gentle opening stop.",
-    state: "done",
+    state: "active",
     tier: "LANDMARK",
     tags: [
       { label: "Craft gallery", tone: "neutral" },
@@ -278,7 +189,7 @@ const culturalStops = [
     walkMinutesFromPrevious: 2,
     description:
       "Photography anchor inside a restored mansion. Strong visual payoff, high review density and a generous indoor dwell time for the route.",
-    state: "active",
+    state: "upcoming",
     tier: "LANDMARK",
     tags: [
       { label: "Photography", tone: "neutral" },
@@ -1515,6 +1426,14 @@ const culturalOverlap: ItineraryOverlap = {
       avatarTone: "oak",
       name: "Maya R.",
       meta: "Solo · From São Paulo · 2nd day in Lima",
+      bio:
+        "In Lima for a long weekend, usually chasing small galleries, design shops, and late dessert stops.",
+      profileFacts: [
+        { label: "Home base", value: "São Paulo" },
+        { label: "Travel mode", value: "Solo · relaxed pace" },
+        { label: "Languages", value: "Portuguese, English, Spanish" },
+        { label: "Looking for", value: "Art stops and low-key evening plans" },
+      ],
       vibeTags: ["Art lover", "Night owl"],
       overlapReason: "Same museum window",
       currentStopLabel: "MATE – Museo Mario Testino",
@@ -1558,6 +1477,14 @@ const culturalOverlap: ItineraryOverlap = {
       avatarTone: "ink",
       name: "Sam K.",
       meta: "Solo · From Berlin · 5th day in Lima",
+      bio:
+        "Culture-first traveler with a food-first weakness. Likes comparing notes on neighborhoods, museums, and where to eat next.",
+      profileFacts: [
+        { label: "Home base", value: "Berlin" },
+        { label: "Travel mode", value: "Solo · structured but flexible" },
+        { label: "Languages", value: "German, English" },
+        { label: "Looking for", value: "Museum context and a strong lunch pick" },
+      ],
       vibeTags: ["Culture", "Food first"],
       overlapReason: "Shared lunch leg",
       currentStopLabel: "MATE – Museo Mario Testino",
@@ -1601,6 +1528,14 @@ const culturalOverlap: ItineraryOverlap = {
       avatarTone: "marine",
       name: "Rafa M.",
       meta: "Solo · From Mexico City · 1st day in Lima",
+      bio:
+        "First day in Lima and moving by instinct: street views, loud corners, quick snacks, and plans that can change fast.",
+      profileFacts: [
+        { label: "Home base", value: "Mexico City" },
+        { label: "Travel mode", value: "Solo · spontaneous" },
+        { label: "Languages", value: "Spanish, English" },
+        { label: "Looking for", value: "Casual hangs and late-day discoveries" },
+      ],
       vibeTags: ["Pure chaos", "Night owl"],
       overlapReason: "Late route alignment",
       currentStopLabel: "MATE – Museo Mario Testino",

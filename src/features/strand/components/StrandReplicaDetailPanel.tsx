@@ -4,10 +4,7 @@ import type { ItineraryStop, TagTone } from "@/entities/itinerary/types";
 
 export type StrandDetailActionLabel =
   | "Check in"
-  | "Skip"
-  | "Swap"
-  | "Navigate"
-  | "Keep it";
+  | "Skip";
 
 export interface StrandDetailAction {
   label: StrandDetailActionLabel;
@@ -50,6 +47,7 @@ export function StrandReplicaDetailPanel({
   const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
   const walkIn = stop.tags.some((tag) => tag.label.toLowerCase().includes("walk-in")) || stop.tier === "LANDMARK";
   const visited = stop.state === "done";
+  const skipped = stop.state === "skipped";
   const isLocal = stop.tier === "LOCAL";
 
   const panel = (
@@ -70,6 +68,7 @@ export function StrandReplicaDetailPanel({
         {stop.district}
         {walkIn ? <span className="strand-replica__panel-walkin">· Walk-in</span> : null}
         {visited ? <span className="strand-replica__panel-visited"> · Already visited</span> : null}
+        {skipped ? <span className="strand-replica__panel-skipped"> · Skipped</span> : null}
       </div>
 
       <div className="strand-replica__panel-rating">

@@ -13,28 +13,12 @@ export function getStopDistToNext(stops: ItineraryStop[], index: number) {
 }
 
 export function getStopDetailActions(
-  stop: ItineraryStop,
+  _stop: ItineraryStop,
   index: number,
   total: number,
 ) {
-  if (stop.state === "done") {
-    return [] as StrandDetailAction[];
-  }
-
-  if (index === total - 1) {
-    return [
-      { label: "Keep it", tone: "ghost" },
-      { label: "Swap", tone: "skip" },
-    ] satisfies StrandDetailAction[];
-  }
-
-  if (stop.category === "LOOKOUT" || stop.category === "LANDMARK") {
-    return [
-      { label: "Navigate", tone: "ghost" },
-      { label: "Skip", tone: "skip" },
-    ] satisfies StrandDetailAction[];
-  }
-
+  void index;
+  void total;
   return [
     { label: "Check in", tone: "primary" },
     { label: "Skip", tone: "skip" },

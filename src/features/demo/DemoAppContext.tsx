@@ -21,6 +21,22 @@ type PersistedPreferences = Partial<OnboardingPreferences> & {
   includeFood?: boolean;
 };
 
+function normalizeGroupSize(groupSize: unknown) {
+  if (typeof groupSize === "number") {
+    return Math.min(20, Math.max(3, groupSize));
+  }
+
+  if (groupSize === "ANY") {
+    return 20;
+  }
+
+  if (groupSize === "ONE_ON_ONE") {
+    return 3;
+  }
+
+  return 3;
+}
+
 interface DemoState {
   preferences: OnboardingPreferences;
   itineraries: Record<string, Itinerary>;
@@ -55,6 +71,13 @@ type DemoAction =
       };
     }
   | {
+      type: "markStopSkipped";
+      payload: {
+        itineraryId: string;
+        stopId: string;
+      };
+    }
+  | {
       type: "toggleMeetups";
     }
   | {
@@ -67,6 +90,7 @@ interface DemoContextValue {
   generateStrand: (preferences: OnboardingPreferences) => string;
   replanStrand: (itineraryId: string) => void;
   markStopDone: (itineraryId: string, stopId: string) => void;
+  markStopSkipped: (itineraryId: string, stopId: string) => void;
   toggleMeetups: () => void;
   sendNod: (itineraryId: string, wandrId: string) => {
     matched: boolean;
@@ -116,6 +140,46 @@ function normalizePreferences(
     socialPreferences: {
       ...defaults.socialPreferences,
       ...preferences.socialPreferences,
+      groupSize: normalizeGroupSize(preferences.socialPreferences?.groupSize),
+    },
+  };
+}
+
+function normalizeSeededItineraries(
+  itineraries: Record<string, Itinerary>,
+): Record<string, Itinerary> {
+  const culturalItinerary = itineraries["lima-cultural-barranco"];
+
+  if (!culturalItinerary) {
+    return itineraries;
+  }
+
+  const firstStop = culturalItinerary.stops[0];
+  const secondStop = culturalItinerary.stops[1];
+
+  if (firstStop?.id !== "dedalo" || secondStop?.id !== "mate") {
+    return itineraries;
+  }
+
+  if (firstStop.state !== "done" || secondStop.state !== "active") {
+    return itineraries;
+  }
+
+  return {
+    ...itineraries,
+    [culturalItinerary.id]: {
+      ...culturalItinerary,
+      stops: culturalItinerary.stops.map((stop, index) => {
+        if (index === 0) {
+          return { ...stop, state: "active" satisfies StopState };
+        }
+
+        if (index === 1) {
+          return { ...stop, state: "upcoming" satisfies StopState };
+        }
+
+        return stop;
+      }),
     },
   };
 }
@@ -131,11 +195,20 @@ function readPersistedState() {
     const parsed = JSON.parse(stored) as DemoState & {
       preferences?: PersistedPreferences;
     };
+    const initialState = createInitialState();
+    const preferences = normalizePreferences(parsed.preferences);
+    const hydratedItinerary = mockWandrService.generateItinerary(preferences);
 
     return {
-      ...createInitialState(),
+      ...initialState,
       ...parsed,
-      preferences: normalizePreferences(parsed.preferences),
+      preferences,
+      itineraries: normalizeSeededItineraries({
+        ...initialState.itineraries,
+        ...parsed.itineraries,
+        [hydratedItinerary.id]: hydratedItinerary,
+      }),
+      activeItineraryId: parsed.activeItineraryId ?? hydratedItinerary.id,
     };
   } catch {
     return createInitialState();
@@ -153,6 +226,10 @@ function advanceStopStates(stops: Itinerary["stops"], stopId: string) {
     let nextState: StopState = stop.state;
 
     if (index <= selectedIndex) {
+      if (stop.state === "skipped") {
+        return stop;
+      }
+
       nextState = "done";
     } else if (index === selectedIndex + 1) {
       nextState = "active";
@@ -164,6 +241,32 @@ function advanceStopStates(stops: Itinerary["stops"], stopId: string) {
       ...stop,
       state: nextState,
     };
+  });
+}
+
+function skipStop(stops: Itinerary["stops"], stopId: string): Itinerary["stops"] {
+  const selectedIndex = stops.findIndex((stop) => stop.id === stopId);
+
+  if (selectedIndex === -1) {
+    return stops;
+  }
+
+  return stops.map((stop, index) => {
+    if (index === selectedIndex) {
+      return {
+        ...stop,
+        state: "skipped" satisfies StopState,
+      };
+    }
+
+    if (index === selectedIndex + 1 && stop.state === "upcoming") {
+      return {
+        ...stop,
+        state: "active" satisfies StopState,
+      };
+    }
+
+    return stop;
   });
 }
 
@@ -206,6 +309,24 @@ function demoReducer(state: DemoState, action: DemoAction): DemoState {
           [itinerary.id]: {
             ...itinerary,
             stops: advanceStopStates(itinerary.stops, action.payload.stopId),
+          },
+        },
+      };
+    }
+    case "markStopSkipped": {
+      const itinerary = state.itineraries[action.payload.itineraryId];
+
+      if (!itinerary) {
+        return state;
+      }
+
+      return {
+        ...state,
+        itineraries: {
+          ...state.itineraries,
+          [itinerary.id]: {
+            ...itinerary,
+            stops: skipStop(itinerary.stops, action.payload.stopId),
           },
         },
       };
@@ -281,6 +402,16 @@ export function DemoAppProvider({ children }: PropsWithChildren) {
         },
       });
       dispatch({ type: "setToast", payload: "Stop marked as visited" });
+    },
+    markStopSkipped(itineraryId, stopId) {
+      dispatch({
+        type: "markStopSkipped",
+        payload: {
+          itineraryId,
+          stopId,
+        },
+      });
+      dispatch({ type: "setToast", payload: "Stop skipped" });
     },
     toggleMeetups() {
       dispatch({ type: "toggleMeetups" });
