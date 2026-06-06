@@ -3,7 +3,7 @@ import type {
   OnboardingOption,
   OnboardingPreferences,
 } from "@/entities/onboarding/types";
-import type { FoodPreference, Interest, Pace } from "@/entities/onboarding/types";
+import type { FoodPreference, Interest } from "@/entities/onboarding/types";
 import type { ItineraryOverlap } from "@/entities/wandr/types";
 
 const mapLink = (query: string) =>
@@ -16,7 +16,6 @@ export const defaultPreferences: OnboardingPreferences = {
   districts: ["Barranco"],
   durationHours: 4,
   interests: ["CULTURAL", "FOODIE"],
-  pace: "MEDIUM",
   foodPreference: "MEAL",
   socialPreferences: {
     enabled: true,
@@ -68,24 +67,6 @@ export const interestOptions: Array<OnboardingOption<Interest>> = [
     value: "BOHEMIAN",
     label: "Bohemio",
     description: "Slow corners, bars and neighborhood mood.",
-  },
-];
-
-export const paceOptions: Array<OnboardingOption<Pace>> = [
-  {
-    value: "TRANQUI",
-    label: "Slow & scenic",
-    description: "More breathing room, longer pauses and gentler transitions.",
-  },
-  {
-    value: "MEDIUM",
-    label: "Balanced",
-    description: "A steady mix of anchors, walking and downtime.",
-  },
-  {
-    value: "INTENSE",
-    label: "Fast highlights",
-    description: "A tighter route focused on the strongest moments.",
   },
 ];
 
@@ -238,7 +219,7 @@ const culturalStops = [
     distanceFromPreviousKm: 0.4,
     walkMinutesFromPrevious: 2,
     description:
-      "Fast outdoor leg with high visual reward. Keeps the strand from becoming museum-heavy and resets pace before the closing anchor.",
+      "Fast outdoor leg with high visual reward. Keeps the strand from becoming museum-heavy before the closing anchor.",
     state: "upcoming",
     tier: "LANDMARK",
     tags: [
@@ -740,7 +721,7 @@ export const itineraryTemplates: Record<string, Itinerary> = {
     title: "Slow Bohemia",
     vibe: "from your vibe · Night edges + neighborhood mood",
     description:
-      "An afternoon-to-evening Barranco loop that favors atmosphere, pacing and places that feel lived in rather than efficient.",
+      "An afternoon-to-evening Barranco loop that favors atmosphere and places that feel lived in rather than efficient.",
     themeSource: "Theme detected",
     generatedFor: ["BOHEMIAN"],
     summaryTags: ["Atmosphere-first", "Cocktail stop", "Golden hour"],
@@ -1175,7 +1156,7 @@ export const foodPreferenceStopOverrides: Record<
           distanceFromPreviousKm: 0,
           walkMinutesFromPrevious: 0,
           description:
-            "Open-air neighborhood opener used when the route should stay entirely focused on place and pacing.",
+            "Open-air neighborhood opener used when the route should stay entirely focused on place.",
           state: "active",
           tier: "LANDMARK",
           tags: [
@@ -1376,7 +1357,7 @@ export const itineraryVariants: Record<
       replacements: [],
     },
     {
-      toastMessage: "Rebalanced the evening pace with a softer opening stop",
+      toastMessage: "Rebalanced the evening with a softer opening stop",
       replacements: [
         {
           index: 0,
@@ -1430,7 +1411,7 @@ const culturalOverlap: ItineraryOverlap = {
         "In Lima for a long weekend, usually chasing small galleries, design shops, and late dessert stops.",
       profileFacts: [
         { label: "Home base", value: "São Paulo" },
-        { label: "Travel mode", value: "Solo · relaxed pace" },
+        { label: "Travel mode", value: "Solo · low-key explorer" },
         { label: "Languages", value: "Portuguese, English, Spanish" },
         { label: "Looking for", value: "Art stops and low-key evening plans" },
       ],
@@ -1583,7 +1564,7 @@ const foodieOverlap: ItineraryOverlap = {
   timeWindow: "12:30 PM · lunch wave",
   count: 2,
   matchCopy:
-    "Food overlap is lighter-weight for MVP: same meal window, same district, compatible pace. Enough to validate the social premise without real-time geolocation.",
+    "Food overlap is lighter-weight for MVP: same meal window and same district. Enough to validate the social premise without real-time geolocation.",
   wandrs: [culturalOverlap.wandrs[1], culturalOverlap.wandrs[2]],
 };
 

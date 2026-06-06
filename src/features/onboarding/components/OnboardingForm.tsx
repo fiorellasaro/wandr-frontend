@@ -5,7 +5,6 @@ import type {
   District,
   Interest,
   OnboardingPreferences,
-  Pace,
 } from "@/entities/onboarding/types";
 
 import {
@@ -15,7 +14,6 @@ import {
   durationOptions,
   foodPreferenceOptions,
   interestOptions,
-  paceOptions,
 } from "@/features/demo/mockCatalog";
 import { useDemoApp } from "@/features/demo/DemoAppContext";
 import { GeographyMap } from "@/features/onboarding/components/GeographyMap";
@@ -106,10 +104,6 @@ export function OnboardingForm() {
             : [...current.districts, district],
       };
     });
-  };
-
-  const setPace = (pace: Pace) => {
-    setDraft((current) => ({ ...current, pace }));
   };
 
   const requestLocation = async () => {
@@ -379,32 +373,6 @@ export function OnboardingForm() {
                 </button>
               );
             })}
-          </div>
-        </div>
-
-        <div className="panel__section">
-          <div className="section-head">
-            <div>
-              <p className="section-head__eyebrow">Pace</p>
-              <h2 className="section-head__title">
-                How do you want the day to feel?
-              </h2>
-            </div>
-          </div>
-          <div className="choice-grid choice-grid--three">
-            {paceOptions.map((option) => (
-              <button
-                className={`choice-card${draft.pace === option.value ? " choice-card--selected" : ""}`}
-                key={option.value}
-                onClick={() => setPace(option.value)}
-                type="button"
-              >
-                <span className="choice-card__label">{option.label}</span>
-                <span className="choice-card__description">
-                  {option.description}
-                </span>
-              </button>
-            ))}
           </div>
         </div>
 

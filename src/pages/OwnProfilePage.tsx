@@ -9,12 +9,6 @@ const interestLabels = {
   BOHEMIAN: "Bohemian",
 };
 
-const paceLabels = {
-  TRANQUI: "Slow",
-  MEDIUM: "Balanced",
-  INTENSE: "Fast",
-};
-
 const budgetLabels = {
   LOW: "Low",
   MID: "Mid",
@@ -99,7 +93,6 @@ export function OwnProfilePage() {
                 {interestLabels[interest]}
               </span>
             ))}
-            <span className="tag">{paceLabels[state.preferences.pace]} pace</span>
             <span className="tag">{budgetLabels[state.preferences.budget]} budget</span>
             <span className="tag">{foodLabels[state.preferences.foodPreference]}</span>
           </div>

@@ -3,7 +3,6 @@ import type {
   Budget,
   FoodPreference,
   OnboardingPreferences,
-  Pace,
 } from "@/entities/onboarding/types";
 import type { ItineraryOverlap, WandrProfile } from "@/entities/wandr/types";
 
@@ -45,13 +44,7 @@ const foodPreferenceNote: Record<FoodPreference, string> = {
   SNACK:
     "Food stays light: a coffee, snack or pickup pause instead of a full meal.",
   NONE:
-    "There is no dedicated food stop, keeping the strand focused on places, walking and pacing.",
-};
-
-const paceDescriptions: Record<Pace, string> = {
-  TRANQUI: "slow scenic pace",
-  MEDIUM: "balanced pace",
-  INTENSE: "fast highlights pace",
+    "There is no dedicated food stop, keeping the strand focused on places and walking.",
 };
 
 const budgetDescriptions: Record<Budget, string> = {
@@ -93,7 +86,6 @@ function buildPreferenceHighlights(preferences: OnboardingPreferences) {
     preferences.interests
       .map((interest) => interestToLabel[interest] ?? interest)
       .join(" + "),
-    paceDescriptions[preferences.pace],
     foodPreferenceSummaryTag[preferences.foodPreference].toLowerCase(),
     budgetDescriptions[preferences.budget],
   ];
@@ -115,7 +107,7 @@ function buildItineraryDescription(preferences: OnboardingPreferences) {
     ? "Previously visited places are avoided."
     : "Familiar favorites can still appear when they fit.";
 
-  return `A ${preferences.durationHours}h ${districtText} strand shaped around ${interestText}, ${paceDescriptions[preferences.pace]} and ${budgetDescriptions[preferences.budget]}. It ${walkText}. ${foodPreferenceNote[preferences.foodPreference]} ${visitedText}`;
+  return `A ${preferences.durationHours}h ${districtText} strand shaped around ${interestText} and ${budgetDescriptions[preferences.budget]}. It ${walkText}. ${foodPreferenceNote[preferences.foodPreference]} ${visitedText}`;
 }
 
 function applyFoodPreference(itinerary: Itinerary, foodPreference: FoodPreference) {
