@@ -1,6 +1,6 @@
-export type City = "Lima";
+export type City = "Cartagena de Indias";
 
-export type District = "Barranco" | "Miraflores";
+export type District = "Getsemaní" | "San Felipe";
 
 export type Interest = "CULTURAL" | "FOODIE" | "URBANIST" | "BOHEMIAN";
 

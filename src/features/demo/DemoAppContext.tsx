@@ -16,6 +16,8 @@ import { itineraryTemplates } from "@/features/demo/mockCatalog";
 import { mockWandrService } from "@/features/demo/mockWandrService";
 
 const STORAGE_KEY = "wandr-demo-state-v1";
+const CURRENT_ITINERARY_IDS = new Set(Object.keys(itineraryTemplates));
+const CURRENT_DISTRICTS = new Set(["Getsemaní", "San Felipe"]);
 
 type PersistedPreferences = Partial<OnboardingPreferences> & {
   includeFood?: boolean;
@@ -131,9 +133,15 @@ function normalizePreferences(
     return defaults;
   }
 
+  const districts = Array.isArray(preferences.districts)
+    ? preferences.districts.filter((district) => CURRENT_DISTRICTS.has(district))
+    : defaults.districts;
+
   return {
     ...defaults,
     ...preferences,
+    city: defaults.city,
+    districts: districts.length > 0 ? districts : defaults.districts,
     foodPreference:
       preferences.foodPreference ??
       (preferences.includeFood === true ? "MEAL" : "NONE"),
@@ -148,7 +156,7 @@ function normalizePreferences(
 function normalizeSeededItineraries(
   itineraries: Record<string, Itinerary>,
 ): Record<string, Itinerary> {
-  const culturalItinerary = itineraries["lima-cultural-barranco"];
+  const culturalItinerary = itineraries["cartagena-cultural-getsemani"];
 
   if (!culturalItinerary) {
     return itineraries;
@@ -157,7 +165,7 @@ function normalizeSeededItineraries(
   const firstStop = culturalItinerary.stops[0];
   const secondStop = culturalItinerary.stops[1];
 
-  if (firstStop?.id !== "dedalo" || secondStop?.id !== "mate") {
+  if (firstStop?.id !== "plaza-trinidad" || secondStop?.id !== "murals-getsemani") {
     return itineraries;
   }
 
@@ -205,10 +213,11 @@ function readPersistedState() {
       preferences,
       itineraries: normalizeSeededItineraries({
         ...initialState.itineraries,
-        ...parsed.itineraries,
         [hydratedItinerary.id]: hydratedItinerary,
       }),
-      activeItineraryId: parsed.activeItineraryId ?? hydratedItinerary.id,
+      activeItineraryId: CURRENT_ITINERARY_IDS.has(parsed.activeItineraryId)
+        ? parsed.activeItineraryId
+        : hydratedItinerary.id,
     };
   } catch {
     return createInitialState();

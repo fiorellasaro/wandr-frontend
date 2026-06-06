@@ -21,6 +21,7 @@ import {
   districtCenters,
   formatDistanceKm,
   getDistanceKm,
+  resolveCartagenaOnboardingLocation,
 } from "@/features/onboarding/lib/geography";
 import type {
   LocationStatus,
@@ -138,11 +139,13 @@ export function OnboardingForm() {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setUserLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracyMeters: position.coords.accuracy,
-        });
+        setUserLocation(
+          resolveCartagenaOnboardingLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracyMeters: position.coords.accuracy,
+          }),
+        );
         setLocationStatus("granted");
         setLocationError(null);
         setShowDistrictFallback(false);
@@ -210,7 +213,7 @@ export function OnboardingForm() {
   return (
     <div className="page page--onboarding">
       <header className="hero">
-        <p className="hero__eyebrow">Wandr MVP · Lima</p>
+        <p className="hero__eyebrow">Wandr MVP · Cartagena</p>
         <h1 className="hero__title">
           Wandr builds your day. Then finds your people.
         </h1>
@@ -222,7 +225,7 @@ export function OnboardingForm() {
           <div className="section-head">
             <div>
               <p className="section-head__eyebrow">City</p>
-              <h2 className="section-head__title">Lima</h2>
+              <h2 className="section-head__title">Cartagena de Indias</h2>
             </div>
           </div>
           <div className="geography-flow">

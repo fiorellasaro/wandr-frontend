@@ -12,14 +12,22 @@ export interface UserLocation extends GeoPoint {
 export type LocationStatus = "idle" | "locating" | "granted" | "error";
 
 export const districtCenters: Record<District, GeoPoint> = {
-  Miraflores: {
-    latitude: -12.1213,
-    longitude: -77.0297,
+  Getsemaní: {
+    latitude: 10.4208,
+    longitude: -75.5461,
   },
-  Barranco: {
-    latitude: -12.1457,
-    longitude: -77.0201,
+  "San Felipe": {
+    latitude: 10.4226,
+    longitude: -75.5392,
   },
+};
+
+const CARTAGENA_MVP_RADIUS_KM = 8;
+
+export const cartagenaDemoLocation: UserLocation = {
+  latitude: 10.4215,
+  longitude: -75.5446,
+  accuracyMeters: 35,
 };
 
 function toRadians(value: number) {
@@ -49,4 +57,17 @@ export function formatDistanceKm(distanceKm: number) {
   return distanceKm >= 10
     ? `${Math.round(distanceKm)} km from you`
     : `${distanceKm.toFixed(1)} km from you`;
+}
+
+export function isInsideCartagenaMvpZone(location: GeoPoint) {
+  return Object.values(districtCenters).some(
+    (districtCenter) =>
+      getDistanceKm(location, districtCenter) <= CARTAGENA_MVP_RADIUS_KM,
+  );
+}
+
+export function resolveCartagenaOnboardingLocation(
+  location: UserLocation,
+): UserLocation {
+  return isInsideCartagenaMvpZone(location) ? location : cartagenaDemoLocation;
 }

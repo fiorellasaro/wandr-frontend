@@ -51,8 +51,8 @@ export function OwnProfilePage() {
           <p className="hero__eyebrow">Your wandr profile</p>
           <h1 className="hero__title">Valeria Torres</h1>
           <p className="hero__body">
-            Lima-based explorer with a soft spot for galleries, thoughtful food
-            stops and neighborhoods that reward slow attention.
+            Cartagena-based explorer with a soft spot for street art, local
+            snacks and historic walks that reward slow attention.
           </p>
         </div>
       </section>

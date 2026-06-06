@@ -15,10 +15,10 @@ import {
 } from "@/features/demo/mockCatalog";
 
 const interestToItineraryId: Record<string, string> = {
-  CULTURAL: "lima-cultural-barranco",
-  FOODIE: "lima-foodie-barranco",
-  URBANIST: "lima-urbanist-dual",
-  BOHEMIAN: "lima-bohemian-barranco",
+  CULTURAL: "cartagena-cultural-getsemani",
+  FOODIE: "cartagena-foodie-getsemani",
+  URBANIST: "cartagena-urbanist-heritage",
+  BOHEMIAN: "cartagena-bohemian-getsemani",
 };
 
 const interestToLabel: Record<string, string> = {
@@ -189,7 +189,7 @@ export const mockWandrService = {
 
     if (preferences.districts.length > 0) {
       next.districts = preferences.districts;
-      next.startLabel = `${preferences.districts.join(" + ")}, Lima`;
+      next.startLabel = `${preferences.districts.join(" + ")}, Cartagena`;
     }
 
     next.stats.totalDurationHours = preferences.durationHours;
@@ -216,7 +216,7 @@ export const mockWandrService = {
 
     if (preferences.districts.length > 0) {
       result.itinerary.districts = preferences.districts;
-      result.itinerary.startLabel = `${preferences.districts.join(" + ")}, Lima`;
+      result.itinerary.startLabel = `${preferences.districts.join(" + ")}, Cartagena`;
     }
 
     return result;

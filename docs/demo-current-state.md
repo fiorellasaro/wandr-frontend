@@ -4,7 +4,7 @@ Este documento describe la demo actual a nivel de flujo de usuario, rutas habili
 
 ## Resumen de producto
 
-Wandr permite que una persona arme una ruta urbana en Lima segun su contexto del dia: ubicacion, tiempo disponible, intereses, ritmo, comida, presupuesto y apertura social. A partir de ese brief, la demo genera un "strand": una secuencia caminable de paradas con horarios, ratings, duracion, distancia, estados y una capa social de viajeros con rutas superpuestas.
+Wandr permite que una persona arme una ruta urbana en Cartagena de Indias segun su contexto del dia: ubicacion, tiempo disponible, intereses, ritmo, comida, presupuesto y apertura social. A partir de ese brief, la demo genera un "strand": una secuencia caminable de paradas con horarios, ratings, duracion, distancia, estados y una capa social de viajeros con rutas superpuestas.
 
 El alcance actual cubre:
 
@@ -35,14 +35,14 @@ El alcance actual cubre:
 
 IDs de itinerario soportados por datos mock:
 
-- `lima-cultural-barranco`
-- `lima-foodie-barranco`
-- `lima-urbanist-dual`
-- `lima-bohemian-barranco`
+- `cartagena-cultural-getsemani`
+- `cartagena-foodie-getsemani`
+- `cartagena-urbanist-heritage`
+- `cartagena-bohemian-getsemani`
 
 ## Historia de usuario principal
 
-Como viajera en Lima, quiero decirle a Wandr como quiero que se sienta mi dia, cuanto tiempo tengo y si estoy abierta a cruzarme con otras personas, para recibir una ruta caminable que pueda adaptar, recorrer y usar para encontrar overlaps sociales sin depender de chat o geolocalizacion exacta.
+Como viajera en Cartagena, quiero decirle a Wandr como quiero que se sienta mi dia, cuanto tiempo tengo y si estoy abierta a cruzarme con otras personas, para recibir una ruta caminable que pueda adaptar, recorrer y usar para encontrar overlaps sociales sin depender de chat o geolocalizacion exacta.
 
 ## Flujo principal
 
@@ -51,7 +51,7 @@ Como viajera en Lima, quiero decirle a Wandr como quiero que se sienta mi dia, c
 3. Toca `Plan my strand`.
 4. Entra a `/onboarding`.
 5. Comparte ubicacion o, si falla el permiso, continua manualmente.
-6. Elige uno o dos distritos entre Barranco y Miraflores.
+6. Elige una o dos zonas entre Getsemaní y San Felipe.
 7. Configura el brief:
    - duracion: 2h, 3h, 4h o 6h;
    - hasta dos intereses: Cultural, Foodie, Urbanista, Bohemio;
@@ -71,10 +71,10 @@ La seleccion del itinerario se basa principalmente en el primer interes:
 
 | Primer interes | Itinerario generado | Enfoque |
 | --- | --- | --- |
-| Cultural | `lima-cultural-barranco` | Arte, museos, lunch y Barranco caminable. |
-| Foodie | `lima-foodie-barranco` | Cafe, mercado, lunch y cierre escenico. |
-| Urbanista | `lima-urbanist-dual` | Miraflores + Barranco, malecon y handoff urbano. |
-| Bohemio | `lima-bohemian-barranco` | Barranco tarde/noche, bares, cafe y mirador. |
+| Cultural | `cartagena-cultural-getsemani` | Murales, plazas, snack local y Castillo de San Felipe. |
+| Foodie | `cartagena-foodie-getsemani` | Ceviche, limonada de coco, Getsemaní y cierre historico. |
+| Urbanista | `cartagena-urbanist-heritage` | Getsemaní + San Felipe, conexion caminable/taxi y mirador. |
+| Bohemio | `cartagena-bohemian-getsemani` | Arte urbano, musica, plazas y tarde social. |
 
 La preferencia de comida modifica paradas y tags:
 
@@ -163,10 +163,10 @@ Los overlaps varian por itinerario:
 
 | Itinerario | Overlap | Cantidad |
 | --- | --- | --- |
-| `lima-cultural-barranco` | MATE - Museo Mario Testino | 3 wandrs |
-| `lima-foodie-barranco` | Isolina Taberna Peruana | 2 wandrs |
-| `lima-urbanist-dual` | Puente de los Suspiros | 2 wandrs |
-| `lima-bohemian-barranco` | Juanito de Barranco | 1 wandr |
+| `cartagena-cultural-getsemani` | Getsemaní Murals Walk | 3 wandrs |
+| `cartagena-foodie-getsemani` | Ceviche Cartagenero Stop | 2 wandrs |
+| `cartagena-urbanist-heritage` | Getsemaní → San Felipe Link | 2 wandrs |
+| `cartagena-bohemian-getsemani` | Plaza de la Trinidad | 1 wandr |
 
 ## Perfil propio
 
@@ -201,7 +201,7 @@ Esto permite que el perfil y el strand reflejen acciones previas aunque la usuar
 - No hay backend real; todo depende de `mockWandrService` y `mockCatalog`.
 - Los lugares estan modelados como si vinieran de Google Places, pero son datos mock.
 - La capa social no usa usuarios reales, chat, matching real ni geolocalizacion exacta.
-- La ubicacion solo se usa en onboarding para calcular distancia a Barranco/Miraflores.
+- La ubicacion solo se usa en onboarding para calcular distancia a Getsemaní/San Felipe.
 - El itinerario se decide por el primer interes, no por una optimizacion completa de todos los campos.
 - `preferWalking`, `budget`, `groupComposition`, `groupSize` y algunos campos sociales quedan principalmente reflejados como estado/preferencia, no como logica profunda de generacion.
 - `Wandr Local / Upgrade` aparece como upsell visual, pero no tiene flujo implementado.
